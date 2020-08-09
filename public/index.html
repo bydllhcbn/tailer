@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="tail logs easily">
+    <meta name="author" content="Ubeydullah ÇOBAN">
+    <meta name="generator" content="tailer">
+    <title>tailer</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="theme-color" content="#563d7c">
+</head>
+<body>
+
+<div class="m-5 ">
+    <div class="row mt-4 text-center">
+
+        <div class="col-md-3">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header">
+                    <h4 class="my-0 font-weight-normal">servers</h4>
+                </div>
+                <div class="card-body">
+                    <div class="list-group" id="server-list">
+
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="col-md-9">
+            <div class="card mb-4 shadow-sm" id="loading-wrapper">
+                <div class="card-header">
+                    <h4 class="my-0 font-weight-normal">please wait</h4>
+                </div>
+                <div class="card-body">
+                    <div class="spinner-grow text-primary" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <p id="loading-message">connecting</p>
+                </div>
+            </div>
+            <div id="tail-settings" style="display: none" class="card mb-4 shadow-sm">
+                <div class="card-header">
+                    <h4 class="my-0 font-weight-normal">tail settings</h4>
+                </div>
+                <div class="card-body">
+                    <h4 id="active-items">select files</h4>
+                    <div class="list-group form-check form-switch" id="file-list">
+
+
+                    </div>
+
+                    <button onclick="startTail()" class="btn btn-block btn-primary mt-4">start tail</button>
+
+
+                </div>
+            </div>
+
+            <div id="output-card" style="display: none" class="card mb-4 shadow-sm">
+                <div class="card-header">
+                    <h4 class="my-0 font-weight-normal">output</h4>
+                </div>
+                <div class="card-body">
+                    <ul id="log-list" onwheel="stopAutoScroll()" onclick="stopAutoScroll()" class="list-group text-left"
+                        style="height: 700px;overflow-y: scroll;">
+
+
+                    </ul>
+                    <div class="row mt-4">
+                        <div class="col-3">
+                            <div class="form-check form-switch">
+                                <label class="form-check-label" for="auto-scroll-check">
+                                    <input onchange="onAutoScrollCheckChange(this)" class="form-check-input"
+                                           type="checkbox" id="auto-scroll-check" checked>
+
+                                    auto scroll</label>
+                            </div>
+                        </div>
+                        <div class="col-3" id="button-select-files" style="display: none">
+                            <button onclick="selectFilesAgain()"
+                                    class="btn btn-block btn-primary">select files again
+                            </button>
+
+                        </div>
+                        <div class="col-3" id="button-stop-tail">
+                            <button onclick="stopTail()"
+                                    class="btn btn-block btn-primary">stop tail
+                            </button>
+                        </div>
+                        <div class="col-3">
+                            <button id="button-download-logs" onclick="downloadLogs()"
+                                    class="btn btn-block btn-primary">download logs
+                            </button>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="errorModalLabel">an error occured</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="error-text"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">okay</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/templates.js"></script>
+<script src="/script.js"></script>
+
+</body>
+</html>
