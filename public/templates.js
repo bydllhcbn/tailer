@@ -21,5 +21,5 @@ let templateFileRow = file => htmlToElement(`
     `)
 
 let templateLogRow = log => htmlToElement(`
-    <li class="list-group-item">${log}</li>
+    <li class="list-group-item log-item">${log}</li>
     `)

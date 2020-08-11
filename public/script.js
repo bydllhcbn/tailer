@@ -10,6 +10,9 @@ let loadingWrapper = find('#loading-wrapper');
 let outputCard = find('#output-card');
 let loadingMessage = find('#loading-message');
 let autoScrollCheck = find('#auto-scroll-check');
+let filterQuery = find('#filter-query');
+let logCountLabel = find('#log-count');
+let logArray = []
 window.onload = async function () {
     let servers = await apiGet('/server');
     for (let name in servers) {
@@ -32,10 +35,7 @@ function onServerItemClicked(elem) {
             selectedServer = null;
             showError("Cannot connect to server!");
         } else {
-
-
             selectedServer = elem;
-
             fileList.innerHTML = '';
             elem.classList.add('active')
             if (res.length > 0) {
@@ -125,13 +125,13 @@ function onClick(element, callback) {
     element.onclick = () => callback(element);
 }
 
-
 function startTail() {
     if (ws) ws.close();
 
     autoScrollCheck.checked = true;
     let items = findAll('.file-row-input');
     let checkedFiles = [];
+    logArray = [];
     for (let item of items) {
         if (item.checked) {
             checkedFiles.push(item.getAttribute('id'))
@@ -183,30 +183,42 @@ function addRawLog(rawLog) {
     for (let row of rows) {
         if (row.length < 3) continue;
         let accessLogMatches = accessLogPattern.exec(row);
-
+        let templateRow = '';
         //row = row.replace(pattern, "<b>$&</b>");
         //row = row.replace(' "', "<br>");
         if (accessLogMatches) {
-            logList.appendChild(templateLogRow(`
+            templateRow = templateLogRow(`
             <small> ${accessLogMatches[2]} - <b>${accessLogMatches[1]}</b> - ${accessLogMatches[8]}</small><br>
             <b><span style="color: ${parseInt(accessLogMatches[6]) > 300 ? '#7e0400' : '#257e00'}">${accessLogMatches[6]}</span> <span style="color: #005fa5">${accessLogMatches[3]}</span> 
             <span style="color: black">${accessLogMatches[4]}</span> </b>
             
-            `))
+            `)
         } else {
             let errorLogMatches = errorLogPattern.exec(row);
             if (errorLogMatches) {
-                logList.appendChild(templateLogRow(`
+                templateRow = templateLogRow(`
             <small> ${errorLogMatches[1]} - <b>${errorLogMatches[4]}</b></small> - <span style="color: #005fa5">${errorLogMatches[2]}</span><br>
             <span style="color: black">${errorLogMatches[5].replace(/\\n/g, '<br>')}</span>
            
-            `))
+            `)
             } else {
-                logList.appendChild(templateLogRow(row))
+                templateRow = templateLogRow(row)
             }
         }
 
+        let searchItem = {
+            query: row.toLowerCase(),
+            element: templateRow,
+        };
 
+        if (filterQuery.value !== '') {
+            if (searchItem.query.indexOf(filterQuery.value.toLowerCase()) === -1) {
+                templateRow.style.display = 'none';
+            }
+        }
+        logList.appendChild(templateRow)
+        logArray.push(searchItem)
+        logCountLabel.innerHTML = logArray.length;
     }
     if (autoScrollCheck.checked) logList.scrollTop = logList.scrollHeight;
 }
@@ -240,4 +252,37 @@ function startWebSocket(filePath, serverName) {
         console.log("Websocket closed... ");
         ws = null;
     }
+}
+
+function onFilterChanged(query) {
+    //let rows = findAll('.log-item');
+    //query = query.toString().toLowerCase();
+    logArray.forEach((log) => {
+        if (log.query.indexOf(query) !== -1) {
+            log.element.style.display = '';
+        } else {
+            log.element.style.display = 'none';
+        }
+    })
+}
+function download(filename, text) {
+    var pom = document.createElement('a');
+    pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    pom.setAttribute('download', filename);
+
+    if (document.createEvent) {
+        var event = document.createEvent('MouseEvents');
+        event.initEvent('click', true, true);
+        pom.dispatchEvent(event);
+    }
+    else {
+        pom.click();
+    }
+}
+function downloadLogs() {
+    let text = '';
+    logArray.forEach(function (log) {
+        text += log.query+'\n';
+    })
+    download('logs.txt',text);
 }

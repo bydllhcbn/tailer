@@ -27,8 +27,16 @@
                     </div>
                 </div>
             </div>
-
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header">
+                    <h4 class="my-0 font-weight-normal">filter</h4>
+                </div>
+                <div class="card-body">
+                    <input onkeyup="onFilterChanged(this.value)" autocomplete="off" type="text" id="filter-query" class="form-control" placeholder="search in logs">
+                </div>
+            </div>
         </div>
+
         <div class="col-md-9">
             <div class="card mb-4 shadow-sm" id="loading-wrapper">
                 <div class="card-header">
@@ -60,7 +68,7 @@
 
             <div id="output-card" style="display: none" class="card mb-4 shadow-sm">
                 <div class="card-header">
-                    <h4 class="my-0 font-weight-normal">output</h4>
+                    <h4 class="my-0 font-weight-normal">output (<span id="log-count">0</span> lines)</h4>
                 </div>
                 <div class="card-body">
                     <ul id="log-list" onwheel="stopAutoScroll()" onclick="stopAutoScroll()" class="list-group text-left"
@@ -91,7 +99,7 @@
                         </div>
                         <div class="col-3">
                             <button id="button-download-logs" onclick="downloadLogs()"
-                                    class="btn btn-block btn-primary">download logs
+                                    class="btn btn-block btn-primary">download output logs
                             </button>
                         </div>
                     </div>
