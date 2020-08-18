@@ -55,23 +55,26 @@ router.get('/logFiles/:name', function (req, res, next) {
                         if (itemArray.length > 6) files.push({
                             'size': itemArray[4],
                             'date': itemArray[5] + ' ' + itemArray[6] + ' ' + itemArray[7],
-                            'name': itemArray[8],
+                            'name': '/var/log/httpd/' + itemArray[8],
                         })
                     })
-
                     res.send(files);
+                    ssh.end();
                 },
                 err: function (error) {
                     res.send({
                         'error': 'ssh error'
                     });
+                    console.log('error: '+error);
                 },
                 exit: function () {
                     console.log(req.params.name + ' ssh exited!');
+                    console.log('ssh closed');
                 },
             }).start();
 
         } else {
+            console.log('name not found');
             res.send({
                 'error': 'name not found'
             });
@@ -112,27 +115,47 @@ router.delete('/server', function (req, res, next) {
 router.post('/server', function (req, res, next) {
 
     if (!(req.body.name && req.body.user && req.body.pass && req.body.host && req.body.port)) {
-        res.send({'error': 'missing params'});
+        res.send({'status': 'missing params'});
         return;
     }
-    const db = new JSONdb('db.json');
-    let server = {
-        name: req.body.name,
+    let ssh = new SSH({
         user: req.body.user,
-        pass: req.body.pass,
         host: req.body.host,
+        pass: req.body.pass,
         port: req.body.port
-    };
+    });
+    ssh.on('error', function (err) {
+        res.send({
+            'status': 'cannot connect to server'
+        });
+        ssh.end();
+    });
 
-    let servers = db.get('servers');
-    if (typeof servers === 'undefined') {
-        servers = {};
-    }
+    ssh.on('ready', function (err) {
 
-    servers[req.body.name] = server;
-    db.set('servers', servers);
-    db.sync();
-    res.send(servers);
+        const db = new JSONdb('db.json');
+        let server = {
+            name: req.body.name,
+            user: req.body.user,
+            pass: req.body.pass,
+            host: req.body.host,
+            port: req.body.port
+        };
+
+        let servers = db.get('servers');
+        if (typeof servers === 'undefined') {
+            servers = {};
+        }
+
+        servers[req.body.name] = server;
+        db.set('servers', servers);
+        db.sync();
+        res.send({
+            'status': 'ok'
+        });
+        ssh.end();
+    });
+ssh.start();
 });
 
 module.exports = router;

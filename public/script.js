@@ -1,6 +1,9 @@
 let ws;
-let selectedServer = false;
+let tailerToken = Math.random().toString(36).substring(7);
+let clientIp = null;
+let selectedServer = null;
 let errorModal = new bootstrap.Modal(document.getElementById('errorModal'), {})
+let serverAddModal = new bootstrap.Modal(document.getElementById('serverAddModal'), {})
 let errorText = find('#error-text')
 let fileList = find('#file-list')
 let serverList = find('#server-list')
@@ -8,12 +11,42 @@ let logList = find('#log-list')
 let tailSettings = find('#tail-settings')
 let loadingWrapper = find('#loading-wrapper');
 let outputCard = find('#output-card');
+let filterCard = find('#filter-card');
 let loadingMessage = find('#loading-message');
 let autoScrollCheck = find('#auto-scroll-check');
 let filterQuery = find('#filter-query');
 let logCountLabel = find('#log-count');
+let tailSettingNumber = find('#tail-setting-number');
+let tailSettingFollow = find('#tail-setting-follow');
+let tailSettingMaxlines = 10000;
+let tailSettingPretty = true;
+let ipFilterList = find('#ip-filter-list');
+
+let addServerName = find('#server-add-name');
+let addServerIp = find('#server-add-ip');
+let addServerUser = find('#server-add-user');
+let addServerPassword = find('#server-add-password');
+let addServerPort = find('#server-add-port');
+let addServerButton = find('#server-add-button');
+let addServerErrorText = find('#server-add-error-text');
+
 let logArray = []
-window.onload = async function () {
+
+var accessLogPattern = /(\d*\.\d*\.\d*\.\d*)(?:[^\/]*)\[([^-]*)].*(GET|POST|PUT|DELETE) (.*)" (\d*) (\d*)(.*)/;
+var errorLogPattern = /\[(.*\d)] (\[[^\]]*] ).*\[client (.*)] (.*)/;
+var ipPattern = /(\d*\.\d*\.\d*\.\d*)/;
+var greenPattern = /(success|200 )/;
+var orangePattern = /(warning|notice|304 |301 )/;
+var redPattern = /(fatal|error|stack trace|undefined|exception|500 |400 |403 |401 |404 |503 |502 )/;
+var bluePattern = /(GET|POST|PUT|DELETE|NOTICE)/;
+let advancedFilterIps = {}
+
+window.onload = function () {
+    loadServerList();
+}
+
+async function loadServerList() {
+    serverList.innerHTML = '';
     let servers = await apiGet('/server');
     for (let name in servers) {
         serverList.appendChild(templateServerRow(name, servers[name]['host'], '1'))
@@ -92,7 +125,7 @@ function showError(text = 'Unknown error') {
     errorModal.show();
 }
 
-async function apiGet(url, callback) {
+async function apiGet(url) {
     const response = await fetch(url);
     return response.json();
 }
@@ -104,7 +137,7 @@ async function apiPost(url = '', data = {}) {
         cache: 'no-cache',
         credentials: 'same-origin',
         headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Type': 'application/json',
         },
         redirect: 'follow',
         referrerPolicy: 'no-referrer',
@@ -127,7 +160,9 @@ function onClick(element, callback) {
 
 function startTail() {
     if (ws) ws.close();
-
+    tailSettingMaxlines = parseInt(find('#tail-setting-maxlines').value) || 1000;
+    tailSettingPretty = find('#tail-setting-pretty').checked;
+    advancedFilterIps = {};
     autoScrollCheck.checked = true;
     let items = findAll('.file-row-input');
     let checkedFiles = [];
@@ -137,13 +172,15 @@ function startTail() {
             checkedFiles.push(item.getAttribute('id'))
         }
     }
+    if (checkedFiles.length === 0) {
+        showError('please select at least one file')
+        return;
+    }
     showLoading('connecting to socket...')
-    console.log(checkedFiles.join(','))
+    console.log(checkedFiles.join(' '))
     let name = selectedServer.getAttribute('data-name')
-    startWebSocket('/var/log/httpd/' + checkedFiles[0], name)
+    startWebSocket(checkedFiles.join(' '), name)
     tailSettings.style.display = 'none';
-
-
 }
 
 function onFileCheckChange(checkbox) {
@@ -168,44 +205,98 @@ function stopTail() {
 }
 
 function selectFilesAgain() {
-
     outputCard.style.display = 'none';
     tailSettings.style.display = '';
+    filterCard.style.display = 'none'
+    ipFilterList.innerHTML = '';
+    advancedFilterIps = []
     find('#button-select-files').style.display = 'none';
     find('#button-stop-tail').style.display = '';
 }
 
-var accessLogPattern = /(\d*\.\d*\.\d*\.\d*).*\[(.*)].*(GET|POST|OPTIONS|PUT|DELETE) (.*)(HTTP\/\d.\d)" (\d*) (\d*).* "(.*)"/;
-var errorLogPattern = /\[(.*)\] \[(.*)\] \[(.*)\] \[client (.*):\d*\] (.*)/;
+
+function onIpListItemClicked(item) {
+    filterQuery.value = item.getAttribute('data-item')
+    onFilterChanged(filterQuery.value)
+}
+
+setInterval(function () {
+    ipFilterList.innerHTML = '';
+    let keysSorted = Object.keys(advancedFilterIps).sort(function (a, b) {
+        return advancedFilterIps[b] - advancedFilterIps[a]
+    })
+    if (clientIp) {
+        ipFilterList.appendChild(ipListItem(clientIp + '<b>(YOUR IP)</b>', clientIp))
+    }
+    for (let ip of keysSorted) {
+        ipFilterList.appendChild(ipListItem(ip + '(' + advancedFilterIps[ip] + ')', ip))
+    }
+}, 2000)
+
+function highlightKeywords(log) {
+    let ipMatches = ipPattern.exec(log);
+    if (ipMatches) {
+        log = log.replace(ipMatches[0], '<b style="color:grey">' + ipMatches[0] + '</b>')
+        if (ipMatches[0] in advancedFilterIps) {
+            advancedFilterIps[ipMatches[0]]++;
+        } else {
+            advancedFilterIps[ipMatches[0]] = 1;
+        }
+    }
+    let green = greenPattern.exec(log);
+    if (green) {
+        log = log.replace(green[0], '<b style="color:green">' + green[0] + '</b>')
+    }
+
+    let red = redPattern.exec(log);
+    if (red) {
+        log = log.replace(red[0], '<b style="color:#bc2323">' + red[0] + '</b>')
+    }
+    let blue = bluePattern.exec(log);
+    if (blue) {
+        log = log.replace(blue[0], '<b style="color:#1355ba">' + blue[0] + '</b>')
+    }
+    let orange = orangePattern.exec(log);
+    if (orange) {
+        log = log.replace(orange[0], '<b style="color:#ba6113">' + orange[0] + '</b>')
+    }
+    return log;
+}
+
+function prettyErrorLog(error) {
+    return error
+        .replace(/([^\\n]*)(\/[^/]*\.php)(?: on line |\()(\d*)/g, `$1<b style="color:#9C27B0">$2</b> <b style="color:#f44336">$3</b>`)
+        .replace(/\\n/g, '<br>')
+}
 
 function addRawLog(rawLog) {
     let rows = rawLog.split('\n');
     for (let row of rows) {
         if (row.length < 3) continue;
-        let accessLogMatches = accessLogPattern.exec(row);
         let templateRow = '';
-        //row = row.replace(pattern, "<b>$&</b>");
-        //row = row.replace(' "', "<br>");
-        if (accessLogMatches) {
-            templateRow = templateLogRow(`
-            <small> ${accessLogMatches[2]} - <b>${accessLogMatches[1]}</b> - ${accessLogMatches[8]}</small><br>
-            <b><span style="color: ${parseInt(accessLogMatches[6]) > 300 ? '#7e0400' : '#257e00'}">${accessLogMatches[6]}</span> <span style="color: #005fa5">${accessLogMatches[3]}</span> 
-            <span style="color: black">${accessLogMatches[4]}</span> </b>
-            
-            `)
-        } else {
-            let errorLogMatches = errorLogPattern.exec(row);
-            if (errorLogMatches) {
-                templateRow = templateLogRow(`
-            <small> ${errorLogMatches[1]} - <b>${errorLogMatches[4]}</b></small> - <span style="color: #005fa5">${errorLogMatches[2]}</span><br>
-            <span style="color: black">${errorLogMatches[5].replace(/\\n/g, '<br>')}</span>
-           
-            `)
-            } else {
-                templateRow = templateLogRow(row)
-            }
-        }
 
+        if (tailSettingPretty) {
+            //TODO FIX PARSE
+            let accessLogMatches = accessLogPattern.exec(row);
+            if (accessLogMatches) {
+                templateRow = `
+            <small> ${(new Date(accessLogMatches[2].replace(':', ' '))).toLocaleString()} - ${accessLogMatches[1]} ${accessLogMatches[7]}</small><br>
+            ${accessLogMatches[3]} ${accessLogMatches[5]} <b>${accessLogMatches[4]}</b>`
+            } else {
+                let errorLogMatches = errorLogPattern.exec(row);
+                if (errorLogMatches) {
+                    templateRow = `
+            <small> ${(new Date(errorLogMatches[1])).toLocaleString()} - <b>${errorLogMatches[2]}</b></small> - ${errorLogMatches[3]}<br>
+            <span style="color: black">${prettyErrorLog(errorLogMatches[4])}</span>`
+                } else {
+                    templateRow = row
+                }
+            }
+            templateRow = highlightKeywords(templateRow);
+        } else {
+            templateRow = row
+        }
+        templateRow = templateLogRow(templateRow)
         let searchItem = {
             query: row.toLowerCase(),
             element: templateRow,
@@ -216,8 +307,17 @@ function addRawLog(rawLog) {
                 templateRow.style.display = 'none';
             }
         }
-        logList.appendChild(templateRow)
+
+        logList.insertAdjacentElement('beforeend', templateRow)
+
+
         logArray.push(searchItem)
+
+        if (logArray.length > tailSettingMaxlines) {
+            logArray.shift();
+            logList.removeChild(logList.firstChild)
+        }
+
         logCountLabel.innerHTML = logArray.length;
     }
     if (autoScrollCheck.checked) logList.scrollTop = logList.scrollHeight;
@@ -233,20 +333,23 @@ function startWebSocket(filePath, serverName) {
         logList.innerHTML = '';
         ws.send(JSON.stringify({
             "action": "START_TAIL",
-            "params": {filePath: filePath, serverName: serverName}
+            "params": {
+                filePath: filePath,
+                serverName: serverName,
+                number: tailSettingNumber.value,
+                follow: tailSettingFollow.checked
+            }
         }));
         setTimeout(function () {
             outputCard.style.display = '';
+            filterCard.style.display = ''
             hideLoading();
+            apiGet('http://' + selectedServer.getAttribute('data-host') + '/?tailer_token=t_' + tailerToken + '_t')
         }, 2000)
 
         console.log("Message is sent...");
     };
-    ws.onmessage = function (evt) {
-        //console.log("Message is received... ");
-        //console.log(json);
-        addRawLog(evt.data);
-    };
+    ws.onmessage = onMessageBegin;
     ws.onclose = function () {
         stopTail();
         console.log("Websocket closed... ");
@@ -254,17 +357,40 @@ function startWebSocket(filePath, serverName) {
     }
 }
 
-function onFilterChanged(query) {
-    //let rows = findAll('.log-item');
-    //query = query.toString().toLowerCase();
-    logArray.forEach((log) => {
-        if (log.query.indexOf(query) !== -1) {
-            log.element.style.display = '';
-        } else {
-            log.element.style.display = 'none';
+function onMessageBegin(evt) {
+    //console.log(evt.data);
+    //console.log(typeof evt.data);
+    let tokenMatch = /tailer_token=t_(.*)_t/.exec(evt.data);
+    if (tokenMatch) {
+        let ipMatches = ipPattern.exec(evt.data);
+        if (tokenMatch && tokenMatch[1] === tailerToken) {
+            clientIp = ipMatches[0];
+            ws.onmessage = onMessageNormal;
         }
-    })
+    }
+    onMessageNormal(evt);
 }
+
+function onMessageNormal(evt) {
+    addRawLog(evt.data);
+}
+
+let filterInputTimeout = '';
+
+function onFilterChanged(query) {
+    clearTimeout(filterInputTimeout);
+    filterInputTimeout = setTimeout(function () {
+        let queryL = query.toLowerCase();
+        for (let i = 0; i < logArray.length; i++) {
+            if (logArray[i].query.indexOf(queryL) !== -1) {
+                logArray[i].element.style.display = '';
+            } else {
+                logArray[i].element.style.display = 'none';
+            }
+        }
+    }, 250);
+}
+
 function download(filename, text) {
     var pom = document.createElement('a');
     pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
@@ -274,15 +400,68 @@ function download(filename, text) {
         var event = document.createEvent('MouseEvents');
         event.initEvent('click', true, true);
         pom.dispatchEvent(event);
-    }
-    else {
+    } else {
         pom.click();
     }
 }
+
 function downloadLogs() {
     let text = '';
     logArray.forEach(function (log) {
-        text += log.query+'\n';
+        text += log.query + '\n';
     })
-    download('logs.txt',text);
+    download('logs.txt', text);
+}
+
+function clearLogs() {
+    logArray = [];
+    logList.innerHTML = '';
+}
+
+
+function openServerAddModal() {
+    serverAddModal.show();
+}
+
+function addServer() {
+    addServerErrorText.innerText = '';
+    if (/[a-zA-Z][a-zA-Z0-9-_]{3,32}/.exec(addServerUser.value) == null) {
+        addServerErrorText.innerText = 'please enter a valid username';
+        return;
+    }
+    if (/[a-zA-Z][a-zA-Z0-9-_]{3,32}/.exec(addServerName.value) == null) {
+        addServerErrorText.innerText = 'please enter a valid server name';
+        return;
+    }
+    if (/^\d+$/.exec(addServerPort.value) == null) {
+        addServerErrorText.innerText = 'please enter a valid server port';
+        return;
+    }
+    if (/^\b(?:(?:2(?:[0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9])\.){3}(?:(?:2([0-4][0-9]|5[0-5])|[0-1]?[0-9]?[0-9]))$/.exec(addServerIp.value) == null) {
+        addServerErrorText.innerText = 'please enter a valid ip address';
+        return;
+    }
+    if (addServerPassword.value.length < 3) {
+        addServerErrorText.innerHtml = 'please enter a password';
+        return;
+    }
+    addServerButton.setAttribute('disabled', true);
+    addServerButton.innerHTML = 'connecting...';
+    apiPost('/server', {
+        user: addServerUser.value,
+        pass: addServerPassword.value,
+        host: addServerIp.value,
+        port: addServerPort.value,
+        name: addServerName.value,
+    }).then(function (res) {
+        addServerButton.removeAttribute('disabled');
+        addServerButton.innerHTML = 'add';
+        if (res.status == 'ok') {
+            serverAddModal.hide();
+            loadServerList();
+
+        } else {
+            addServerErrorText.innerText = res.status;
+        }
+    });
 }

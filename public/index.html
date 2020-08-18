@@ -8,31 +8,49 @@
     <meta name="generator" content="tailer">
     <title>tailer</title>
     <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
     <meta name="theme-color" content="#563d7c">
 </head>
 <body>
+<nav class="navbar navbar-dark bg-dark text-white">
+    <div class="mx-auto">
+        <a class="navbar-brand " href="#">tailer</a>
+    </div>
+</nav>
 
 <div class="m-5 ">
     <div class="row mt-4 text-center">
-
         <div class="col-md-3">
             <div class="card mb-4 shadow-sm">
                 <div class="card-header">
-                    <h4 class="my-0 font-weight-normal">servers</h4>
+                    <h4 class="my-0 font-weight-normal">servers
+                        <span onclick="openServerAddModal()" style="cursor: pointer"
+                              class="font-weight-normal float-right">+</span>
+                    </h4>
                 </div>
                 <div class="card-body">
                     <div class="list-group" id="server-list">
 
-
                     </div>
                 </div>
             </div>
-            <div class="card mb-4 shadow-sm">
+            <div style="display: none;" class="card mb-4 shadow-sm" id="filter-card">
                 <div class="card-header">
                     <h4 class="my-0 font-weight-normal">filter</h4>
                 </div>
                 <div class="card-body">
-                    <input onkeyup="onFilterChanged(this.value)" autocomplete="off" type="text" id="filter-query" class="form-control" placeholder="search in logs">
+                    <h6>filter query</h6>
+                    <div class="m-1">
+                        <input onkeyup="onFilterChanged(this.value)" autocomplete="off" type="text" id="filter-query"
+                               class="form-control" placeholder="search in logs">
+                    </div>
+
+                    <h6>filter by ip</h6>
+                    <div class="m-1">
+                        <ul class="list-group" id="ip-filter-list" style="height: 200px;overflow: auto;">
+
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -54,8 +72,40 @@
                     <h4 class="my-0 font-weight-normal">tail settings</h4>
                 </div>
                 <div class="card-body">
+                    <h4>parameters</h4>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label for="tail-setting-number" class="form-label">number of lines to retrieve first
+                                (--lines)</label>
+                            <input type="number" class="form-control" id="tail-setting-number"
+                                   value="100">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="tail-setting-maxlines" class="form-label">maximum number of logs to
+                                display</label>
+                            <input type="number" class="form-control" id="tail-setting-maxlines"
+                                   value="5000">
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-check" style="margin-top: 36px;">
+
+                                <label class="form-check-label" for="tail-setting-follow">
+                                    <input class="form-check-input" checked="" type="checkbox" value=""
+                                           id="tail-setting-follow"> follow as file grows (-f)
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check" style="margin-top: 36px;">
+                                <label class="form-check-label" for="tail-setting-pretty">
+                                    <input class="form-check-input" checked="" type="checkbox" value=""
+                                           id="tail-setting-pretty">parse logs (pretty print + advanced filters)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
                     <h4 id="active-items">select files</h4>
-                    <div class="list-group form-check form-switch" id="file-list">
+                    <div class="list-group form-check form-switch" id="file-list" style="max-height: 600px;overflow: auto;">
 
 
                     </div>
@@ -72,7 +122,7 @@
                 </div>
                 <div class="card-body">
                     <ul id="log-list" onwheel="stopAutoScroll()" onclick="stopAutoScroll()" class="list-group text-left"
-                        style="height: 700px;overflow-y: scroll;">
+                        style="height: 600px;overflow-y: scroll;font-size: 14px;font-family: monospace;">
 
 
                     </ul>
@@ -98,8 +148,13 @@
                             </button>
                         </div>
                         <div class="col-3">
+                            <button id="button-clear-logs" onclick="clearLogs()"
+                                    class="btn btn-block btn-primary">clear logs
+                            </button>
+                        </div>
+                        <div class="col-3">
                             <button id="button-download-logs" onclick="downloadLogs()"
-                                    class="btn btn-block btn-primary">download output logs
+                                    class="btn btn-block btn-primary">download output
                             </button>
                         </div>
                     </div>
@@ -113,6 +168,58 @@
     </div>
 
 </div>
+
+<div class="modal fade" id="serverAddModal" tabindex="-1" aria-labelledby="serverAddModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="serverAddModalLabel">add server</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="server-add-name" class="form-label">server name</label>
+                        <input autocomplete="off" type="text" class="form-control" id="server-add-name" >
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="server-add-ip" class="form-label">server ip</label>
+                        <input autocomplete="off" type="text" class="form-control" id="server-add-ip">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-5">
+                            <div class="mb-3">
+                                <label for="server-add-user" class="form-label">ssh username</label>
+                                <input autocomplete="off" type="text" class="form-control" id="server-add-user">
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="mb-3">
+                                <label for="server-add-password" class="form-label">ssh password</label>
+                                <input autocomplete="off" type="text" class="form-control" id="server-add-password">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="mb-3">
+                                <label for="server-add-port" class="form-label">ssh port</label>
+                                <input autocomplete="off" type="text" value="22" class="form-control" id="server-add-port">
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <b style="color: darkred" id="server-add-error-text"></b>
+                <button type="button" class="btn btn-primary" id="server-add-button" onclick="addServer()">add</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-sm">
         <div class="modal-content">

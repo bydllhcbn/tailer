@@ -6,7 +6,7 @@ const JSONdb = require('simple-json-db');
 let SSH = require('simple-ssh');
 
 
-function startTail(client, filePath, serverName) {
+function startTail(client, filePath, serverName, number, follow) {
     let server = getServer(serverName);
     let ssh = new SSH({
         user: server.user,
@@ -14,8 +14,13 @@ function startTail(client, filePath, serverName) {
         pass: server.pass,
         port: server.port
     });
-
-    ssh.exec('tail -f --lines 100 ' + filePath, {
+    let numberLines = parseInt(number.toString());
+    if (!numberLines || numberLines < 100) numberLines = 100;
+    let followParam = '';
+    if (follow) {
+        followParam = '-f';
+    }
+    ssh.exec('tail ' + followParam + ' --lines ' + numberLines + ' ' + filePath, {
         out: stdout => {
             client.send(stdout);
         },
@@ -23,7 +28,8 @@ function startTail(client, filePath, serverName) {
             client.send(error.toString());
         },
         exit: function () {
-            client.send('finished');
+            //client.send('finished');
+            client.close();
         },
     }).start();
     client.ssh = ssh;
@@ -60,7 +66,13 @@ wsServer.on('connection', function connection(wsClient) {
             wsClient.result("TCP_CLIENTS", clients);
         }
         if (json['action'] === 'START_TAIL') {
-            startTail(wsClient, json['params']['filePath'], json['params']['serverName'])
+            startTail(
+                wsClient,
+                json['params']['filePath'],
+                json['params']['serverName'],
+                json['params']['number'],
+                json['params']['follow']
+            )
         }
 
         console.log('Websocket message: %d %s', this.id, message);
