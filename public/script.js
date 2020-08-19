@@ -21,6 +21,7 @@ let tailSettingFollow = find('#tail-setting-follow');
 let tailSettingMaxlines = 10000;
 let tailSettingPretty = true;
 let ipFilterList = find('#ip-filter-list');
+let keywordFilterList = find('#keyword-filter-list');
 
 let addServerName = find('#server-add-name');
 let addServerIp = find('#server-add-ip');
@@ -36,10 +37,11 @@ var accessLogPattern = /(\d*\.\d*\.\d*\.\d*)(?:[^\/]*)\[([^-]*)].*(GET|POST|PUT|
 var errorLogPattern = /\[(.*\d)] (\[[^\]]*] ).*\[client (.*)] (.*)/;
 var ipPattern = /(\d*\.\d*\.\d*\.\d*)/;
 var greenPattern = /(success|200 )/;
-var orangePattern = /(warning|notice|304 |301 )/;
+var orangePattern = /(warning|warn|notice|304 |301 )/;
 var redPattern = /(fatal|error|stack trace|undefined|exception|500 |400 |403 |401 |404 |503 |502 )/;
 var bluePattern = /(GET|POST|PUT|DELETE|NOTICE)/;
 let advancedFilterIps = {}
+let advancedFilterKeywords = {}
 
 window.onload = function () {
     loadServerList();
@@ -213,7 +215,8 @@ function selectFilesAgain() {
     tailSettings.style.display = '';
     filterCard.style.display = 'none'
     ipFilterList.innerHTML = '';
-    advancedFilterIps = []
+    advancedFilterIps = {};
+    advancedFilterKeywords = {};
     find('#button-select-files').style.display = 'none';
     find('#button-stop-tail').style.display = '';
 }
@@ -226,15 +229,24 @@ function onIpListItemClicked(item) {
 
 setInterval(function () {
     ipFilterList.innerHTML = '';
-    let keysSorted = Object.keys(advancedFilterIps).sort(function (a, b) {
+    keywordFilterList.innerHTML = '';
+
+    let ipsSorted = Object.keys(advancedFilterIps).sort(function (a, b) {
         return advancedFilterIps[b] - advancedFilterIps[a]
+    })
+    let keywordsSorted = Object.keys(advancedFilterKeywords).sort(function (a, b) {
+        return advancedFilterKeywords[b] - advancedFilterKeywords[a]
     })
     if (clientIp) {
         ipFilterList.appendChild(ipListItem(clientIp + '<b>(your client)</b>', clientIp))
     }
-    for (let ip of keysSorted) {
+    for (let ip of ipsSorted) {
         ipFilterList.appendChild(ipListItem(ip + '(' + advancedFilterIps[ip] + ')', ip))
     }
+    for (let keyword of keywordsSorted) {
+        keywordFilterList.appendChild(ipListItem(keyword + '(' + advancedFilterKeywords[keyword] + ')', keyword))
+    }
+
 }, 2000)
 
 function highlightKeywords(log) {
@@ -250,19 +262,40 @@ function highlightKeywords(log) {
     let green = greenPattern.exec(log);
     if (green) {
         log = log.replace(green[0], '<b style="color:green">' + green[0] + '</b>')
+
+        if (green[0] in advancedFilterKeywords) {
+            advancedFilterKeywords[green[0]]++;
+        } else {
+            advancedFilterKeywords[green[0]] = 1;
+        }
     }
 
     let red = redPattern.exec(log);
     if (red) {
         log = log.replace(red[0], '<b style="color:#bc2323">' + red[0] + '</b>')
+        if (red[0] in advancedFilterKeywords) {
+            advancedFilterKeywords[red[0]]++;
+        } else {
+            advancedFilterKeywords[red[0]] = 1;
+        }
     }
     let blue = bluePattern.exec(log);
     if (blue) {
         log = log.replace(blue[0], '<b style="color:#1355ba">' + blue[0] + '</b>')
+        if (blue[0] in advancedFilterKeywords) {
+            advancedFilterKeywords[blue[0]]++;
+        } else {
+            advancedFilterKeywords[blue[0]] = 1;
+        }
     }
     let orange = orangePattern.exec(log);
     if (orange) {
         log = log.replace(orange[0], '<b style="color:#ba6113">' + orange[0] + '</b>')
+        if (orange[0] in advancedFilterKeywords) {
+            advancedFilterKeywords[orange[0]]++;
+        } else {
+            advancedFilterKeywords[orange[0]] = 1;
+        }
     }
     return log;
 }
