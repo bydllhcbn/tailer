@@ -43,8 +43,12 @@ let advancedFilterIps = {}
 
 window.onload = function () {
     loadServerList();
-}
+    logList.style.height = (window.innerHeight-250)+'px';
 
+}
+window.onresize =function(){
+    logList.style.height = (window.innerHeight-250)+'px';
+}
 async function loadServerList() {
     serverList.innerHTML = '';
     let servers = await apiGet('/server');
@@ -226,7 +230,7 @@ setInterval(function () {
         return advancedFilterIps[b] - advancedFilterIps[a]
     })
     if (clientIp) {
-        ipFilterList.appendChild(ipListItem(clientIp + '<b>(YOUR IP)</b>', clientIp))
+        ipFilterList.appendChild(ipListItem(clientIp + '<b>(your client)</b>', clientIp))
     }
     for (let ip of keysSorted) {
         ipFilterList.appendChild(ipListItem(ip + '(' + advancedFilterIps[ip] + ')', ip))

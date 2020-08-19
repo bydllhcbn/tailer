@@ -159,9 +159,20 @@ a.text-primary:hover, a.text-primary:focus {
     box-shadow: 0 0 0 0.2rem rgba(179, 179, 179, 0.25);
 }
 
-.btn-check:focus+.btn-primary, .btn-primary:focus {
+.btn-check:focus + .btn-primary, .btn-primary:focus {
     color: #fff;
     background-color: #343a40;
     border-color: #343a40;
     box-shadow: 0 0 0 0.2rem rgba(81, 81, 81, 0.5);
+}
+
+.card-header {
+    background: #343a40;
+    color: white;
+}
+
+.log-item{
+    padding: 5px;
+    border: 1px solid rgba(0,0,0,.125);
+    border-top-width: 0;
 }

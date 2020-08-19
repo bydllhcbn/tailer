@@ -18,15 +18,15 @@
     </div>
 </nav>
 
-<div class="m-5 ">
-    <div class="row mt-4 text-center">
-        <div class="col-md-3">
+<div class="m-2">
+    <div class="row text-center">
+        <div class="col-md-2">
             <div class="card mb-4 shadow-sm">
                 <div class="card-header">
-                    <h4 class="my-0 font-weight-normal">servers
+                    <h5 class="my-0 font-weight-normal">servers
                         <span onclick="openServerAddModal()" style="cursor: pointer"
                               class="font-weight-normal float-right">+</span>
-                    </h4>
+                    </h5>
                 </div>
                 <div class="card-body">
                     <div class="list-group" id="server-list">
@@ -36,16 +36,15 @@
             </div>
             <div style="display: none;" class="card mb-4 shadow-sm" id="filter-card">
                 <div class="card-header">
-                    <h4 class="my-0 font-weight-normal">filter</h4>
+                    <h5 class="my-0 font-weight-normal">filter</h5>
                 </div>
                 <div class="card-body">
-                    <h6>filter query</h6>
                     <div class="m-1">
                         <input onkeyup="onFilterChanged(this.value)" autocomplete="off" type="text" id="filter-query"
                                class="form-control" placeholder="search in logs">
                     </div>
 
-                    <h6>filter by ip</h6>
+                    <h6>filter by client</h6>
                     <div class="m-1">
                         <ul class="list-group" id="ip-filter-list" style="height: 200px;overflow: auto;">
 
@@ -55,10 +54,10 @@
             </div>
         </div>
 
-        <div class="col-md-9">
+        <div class="col-md-10">
             <div class="card mb-4 shadow-sm" id="loading-wrapper">
                 <div class="card-header">
-                    <h4 class="my-0 font-weight-normal">please wait</h4>
+                    <h5 class="my-0 font-weight-normal">please wait</h5>
                 </div>
                 <div class="card-body">
                     <div class="spinner-grow text-primary" role="status">
@@ -69,10 +68,10 @@
             </div>
             <div id="tail-settings" style="display: none" class="card mb-4 shadow-sm">
                 <div class="card-header">
-                    <h4 class="my-0 font-weight-normal">tail settings</h4>
+                    <h5 class="my-0 font-weight-normal">tail settings</h5>
                 </div>
                 <div class="card-body">
-                    <h4>parameters</h4>
+                    <h5>parameters</h5>
                     <div class="row">
                         <div class="col-md-3">
                             <label for="tail-setting-number" class="form-label">number of lines to retrieve first
@@ -104,8 +103,8 @@
                             </div>
                         </div>
                     </div>
-                    <h4 id="active-items">select files</h4>
-                    <div class="list-group form-check form-switch" id="file-list" style="max-height: 600px;overflow: auto;">
+                    <h5 id="active-items">select files</h5>
+                    <div class="list-group form-check form-switch" id="file-list" style="max-height: 500px;overflow: auto;">
 
 
                     </div>
@@ -118,7 +117,7 @@
 
             <div id="output-card" style="display: none" class="card mb-4 shadow-sm">
                 <div class="card-header">
-                    <h4 class="my-0 font-weight-normal">output (<span id="log-count">0</span> lines)</h4>
+                    <h5 class="my-0 font-weight-normal">output (<span id="log-count">0</span> lines)</h5>
                 </div>
                 <div class="card-body">
                     <ul id="log-list" onwheel="stopAutoScroll()" onclick="stopAutoScroll()" class="list-group text-left"

@@ -6,10 +6,10 @@ function htmlToElement(html) {
 }
 
 let templateServerRow = (name, host, status) => htmlToElement(`
-    <a href="javascript:void(0)" data-name="${name}" data-host="${host}" onclick="onServerItemClicked(this)"
+    <a style="padding: 6px" href="javascript:void(0)" data-name="${name}" data-host="${host}" onclick="onServerItemClicked(this)"
             class="list-group-item list-group-item-action d-flex justify-content-between align-items-center server-item">
         ${name}
-        <small >${host}</small>
+        <span style="font-size: 12px" >${host}</span>
     </a>
     `);
 
@@ -26,7 +26,6 @@ let ipListItem = (item,data) => htmlToElement(`
 
 let templateLogRow = log => {
     let template = document.createElement('li');
-    template.classList.add('list-group-item')
     template.classList.add('log-item')
     template.innerHTML = log;
     return template;
