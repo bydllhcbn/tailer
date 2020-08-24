@@ -1,20 +1,19 @@
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-var ws = require('./ws.js');
+let express = require('express');
+let path = require('path');
+require('./ws.js');
 
-var indexRouter = require('./routes/index');
+let indexRouter = require('./routes/index');
 
-var app = express();
+let app = express();
 
 
-app.use(logger('dev'));
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
+app.use(express.urlencoded({extended: false}));
 app.use(express.static(path.join(__dirname, 'public')));
-
+app.use(function (req, res, next) {
+    console.log(req.ip,' - [',new Date(),']', req.method, req.originalUrl)
+    next()
+});
 app.use('/', indexRouter);
 
 module.exports = app;

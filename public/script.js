@@ -45,17 +45,22 @@ let advancedFilterKeywords = {}
 
 window.onload = function () {
     loadServerList();
-    logList.style.height = (window.innerHeight-250)+'px';
+    logList.style.height = (window.innerHeight - 250) + 'px';
 
 }
-window.onresize =function(){
-    logList.style.height = (window.innerHeight-250)+'px';
+window.onresize = function () {
+    logList.style.height = (window.innerHeight - 250) + 'px';
 }
+
 async function loadServerList() {
     serverList.innerHTML = '';
     let servers = await apiGet('/server');
-    for (let name in servers) {
-        serverList.appendChild(templateServerRow(name, servers[name]['host'], '1'))
+    if (servers.length === 0) {
+        serverList.innerHTML = '<p>click <b>+</b> to add a server</p>'
+    } else {
+        for (let name in servers) {
+            serverList.appendChild(templateServerRow(name, servers[name]['host'], '1'))
+        }
     }
     hideLoading();
 }
@@ -67,6 +72,7 @@ function onServerItemClicked(elem) {
     outputCard.style.display = 'none';
     if (ws) ws.close();
     if (selectedServer) selectedServer.classList.remove('active')
+    find('#starterMessage').style.display = 'none';
     showLoading();
     apiGet('/logFiles/' + name).then(function (res) {
         hideLoading()
@@ -466,8 +472,8 @@ function addServer() {
         addServerErrorText.innerText = 'please enter a valid username';
         return;
     }
-    if (/[a-zA-Z][a-zA-Z0-9-_]{3,32}/.exec(addServerName.value) == null) {
-        addServerErrorText.innerText = 'please enter a valid server name';
+    if (/[a-zA-Z][a-zA-Z0-9-_]{2,32}/.exec(addServerName.value) == null) {
+        addServerErrorText.innerText = 'server name cannot contain special characters';
         return;
     }
     if (/^\d+$/.exec(addServerPort.value) == null) {
