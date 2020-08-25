@@ -1,8 +1,8 @@
 let express = require('express');
 let router = express.Router();
 let SSH = require('simple-ssh');
-
 const JSONdb = require('simple-json-db');
+const {encrypt,decrypt} = require("../crypto");
 
 
 router.get('/', function (req, res, next) {
@@ -37,7 +37,7 @@ router.get('/logFiles/:name', function (req, res, next) {
             let ssh = new SSH({
                 user: server.user,
                 host: server.host,
-                pass: server.pass,
+                pass: decrypt(server.pass),
                 port: server.port
             });
             ssh.on('error', function (err) {
@@ -65,7 +65,7 @@ router.get('/logFiles/:name', function (req, res, next) {
                     res.send({
                         'error': 'ssh error'
                     });
-                    console.log('error: '+error);
+                    console.log('error: ' + error);
                 },
                 exit: function () {
                     console.log(req.params.name + ' ssh exited!');
@@ -137,7 +137,7 @@ router.post('/server', function (req, res, next) {
         let server = {
             name: req.body.name,
             user: req.body.user,
-            pass: req.body.pass,
+            pass: encrypt(req.body.pass),
             host: req.body.host,
             port: req.body.port
         };
@@ -155,7 +155,7 @@ router.post('/server', function (req, res, next) {
         });
         ssh.end();
     });
-ssh.start();
+    ssh.start();
 });
 
 module.exports = router;

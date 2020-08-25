@@ -371,7 +371,7 @@ function stopAutoScroll() {
 }
 
 function startWebSocket(filePath, serverName) {
-    ws = new WebSocket("ws://localhost:8282");
+    ws = new WebSocket("ws://" + window.location.hostname + ":8282");
     ws.onopen = function () {
         logList.innerHTML = '';
         ws.send(JSON.stringify({

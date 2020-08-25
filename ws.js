@@ -4,14 +4,14 @@ const WebSocket = require('ws');
 const wsServer = new WebSocket.Server({port: 8282});
 const JSONdb = require('simple-json-db');
 let SSH = require('simple-ssh');
-
+const {encrypt,decrypt} = require("./crypto");
 
 function startTail(client, filePath, serverName, number, follow) {
     let server = getServer(serverName);
     let ssh = new SSH({
         user: server.user,
         host: server.host,
-        pass: server.pass,
+        pass: decrypt(server.pass),
         port: server.port
     });
     let numberLines = parseInt(number.toString());
