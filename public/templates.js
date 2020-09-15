@@ -6,11 +6,22 @@ function htmlToElement(html) {
 }
 
 let templateServerRow = (name, host, status) => htmlToElement(`
-    <a style="padding: 6px" href="javascript:void(0)" data-name="${name}" data-host="${host}" onclick="onServerItemClicked(this)"
-            class="list-group-item list-group-item-action d-flex justify-content-between align-items-center server-item">
-        ${name}
-        <span style="font-size: 12px" >${host}</span>
-    </a>
+    <div style="padding: 6px" href="javascript:void(0)"
+            class="list-group-item server-item">
+            <div class="row">
+            <div class="col-md-6">
+             <h6>${name} - ${host}</h6>
+</div><div class="col-md-6">
+              <div class=" btn-group">
+       <button class="btn btn-sm btn-outline-danger">Remove</button>
+       <button class="btn btn-sm btn-outline-primary">Edit</button>
+       <button class="btn btn-sm btn-outline-success"  data-name="${name}" data-host="${host}"  onclick="onServerItemClicked(this)">Connect</button>
+</div>
+</div>
+</div>
+       
+     
+    </div>
     `);
 
 let templateFileRow = file => htmlToElement(`
@@ -21,7 +32,7 @@ let templateFileRow = file => htmlToElement(`
     `)
 
 let ipListItem = (item,data) => htmlToElement(`
-    <li class="list-group-item list-group-item-action" onclick="onIpListItemClicked(this)" data-item="${data}">${item}</li>
+    <li class="list-group-item list-group-item-action" onclick="onFilterListItemClicked(this)" data-item="${data}">${item}</li>
     `)
 
 let templateLogRow = log => {

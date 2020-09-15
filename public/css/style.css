@@ -171,8 +171,50 @@ a.text-primary:hover, a.text-primary:focus {
     color: white;
 }
 
-.log-item{
+.log-item {
     padding: 5px;
-    border: 1px solid rgba(0,0,0,.125);
+    border: 1px solid rgba(0, 0, 0, .125);
     border-top-width: 0;
+}
+
+#filter-dropdown-menu {
+    position: absolute;
+    background: white;
+    box-shadow: 5px 5px 4px #a8a8a840;
+    border: 1px solid #cecccc;
+    margin: auto;
+    width: 600px;
+    height: 300px;
+    padding: 8px;
+}
+
+#log-list {
+    height: 600px;
+    overflow-y: scroll;
+    font-size: 14px;
+    font-family: monospace;
+    box-shadow: inset -7px 7px 7px #00000017;
+    border-top-left-radius: 0;
+}
+
+/* width */
+::-webkit-scrollbar {
+  width: 13px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 3px #808080;
+  border-radius: 2px;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #343a40;
+  border-radius: 2px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #292d32;
 }

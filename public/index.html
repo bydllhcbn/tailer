@@ -12,76 +12,55 @@
     <meta name="theme-color" content="#563d7c">
 </head>
 <body>
-<nav class="navbar navbar-dark bg-dark text-white">
-    <div class="mx-auto">
-        <a class="navbar-brand " href="#">tailer</a>
+<nav class="navbar navbar-expand-lg navbar-light p-1 shadow-sm">
+
+
+    <div class="container">
+        <a class="navbar-brand" href="#">tailer</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText"
+                aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarText">
+            <div class="navbar-nav mr-auto mb-2 mb-lg-0">
+
+            </div>
+            <button id="disconnectButton" style="display: none" class="btn btn-outline-danger"
+                    onclick="disconnectServer()">disconnect
+            </button>
+        </div>
     </div>
 </nav>
 
-<div class="m-2">
+<div class="ml-2 mt-2" style="overflow: hidden;">
     <div class="row text-center">
-        <div class="col-md-2">
-            <div class="card mb-4 shadow-sm">
-                <div class="card-header">
-                    <h5 class="my-0 font-weight-normal">servers
-                        <span onclick="openServerAddModal()" style="cursor: pointer"
-                              class="font-weight-normal float-right">+</span>
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="list-group" id="server-list">
 
+        <div class="col-md-12">
+            <div class="row">
+                <div class="col-md-3"></div>
+                <div id="select-server-wrapper" class="text-center col-md-6">
+                    <h5>connect to a server to continue</h5>
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-header">
+                            <h5 class="my-0 font-weight-normal">servers
+                                <span onclick="openServerAddModal()" style="cursor: pointer"
+                                      class="font-weight-normal float-right">+</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group" id="server-list"></div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div style="display: none;" class="card mb-4 shadow-sm" id="filter-card">
-                <div class="card-header">
-                    <h5 class="my-0 font-weight-normal">filter</h5>
+            <div class="m-4" id="loading-wrapper" style="display:none;">
+                <div class="spinner-grow text-primary" role="status">
+                    <span class="sr-only">loading...</span>
                 </div>
-                <div class="card-body">
-                    <div class="m-1">
-                        <input onkeyup="onFilterChanged(this.value)" autocomplete="off" type="text" id="filter-query"
-                               class="form-control" placeholder="search in logs">
-                    </div>
-
-                    <h6>filter by client</h6>
-                    <div class="m-1">
-                        <ul class="list-group" id="ip-filter-list" style="height: 200px;overflow: auto;">
-
-                        </ul>
-                    </div>
-                    <h6>filter by keywords</h6>
-                    <div class="m-1">
-                        <ul class="list-group" id="keyword-filter-list" style="height: 200px;overflow: auto;">
-
-                        </ul>
-                    </div>
-                </div>
+                <p id="loading-message">connecting</p>
             </div>
-            <a target="_blank" class="text-muted btn" href="https://github.com/bydllhcbn/tailer"><small>github</small></a>
-        </div>
-
-        <div class="col-md-10">
-            <div id="starterMessage" class="text-center mt-5">
-                <h5>select a server to continue</h5>
-            </div>
-            <div class="card mb-4 shadow-sm" id="loading-wrapper">
-                <div class="card-header">
-                    <h5 class="my-0 font-weight-normal">please wait</h5>
-                </div>
+            <div id="tail-settings" style="display: none" class="card m-4 shadow-sm">
                 <div class="card-body">
-                    <div class="spinner-grow text-primary" role="status">
-                        <span class="sr-only">Loading...</span>
-                    </div>
-                    <p id="loading-message">connecting</p>
-                </div>
-            </div>
-            <div id="tail-settings" style="display: none" class="card mb-4 shadow-sm">
-                <div class="card-header">
-                    <h5 class="my-0 font-weight-normal">tail settings</h5>
-                </div>
-                <div class="card-body">
-                    <h5>parameters</h5>
                     <div class="row">
                         <div class="col-md-3">
                             <label for="tail-setting-number" class="form-label">number of lines to retrieve first
@@ -95,7 +74,7 @@
                             <input type="number" class="form-control" id="tail-setting-maxlines"
                                    value="5000">
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-2  p-0">
                             <div class="form-check" style="margin-top: 36px;">
 
                                 <label class="form-check-label" for="tail-setting-follow">
@@ -104,7 +83,7 @@
                                 </label>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-4  p-0">
                             <div class="form-check" style="margin-top: 36px;">
                                 <label class="form-check-label" for="tail-setting-pretty">
                                     <input class="form-check-input" checked="" type="checkbox" value=""
@@ -112,31 +91,46 @@
                                 </label>
                             </div>
                         </div>
+
                     </div>
                     <h5 id="active-items">select files</h5>
                     <div class="list-group form-check form-switch" id="file-list" style="max-height: 500px;overflow: auto;">
-
-
                     </div>
-
                     <button onclick="startTail()" class="btn btn-block btn-primary mt-4">start tail</button>
-
-
                 </div>
             </div>
 
             <div id="output-card" style="display: none" class="card mb-4 shadow-sm">
-                <div class="card-header">
-                    <h5 class="my-0 font-weight-normal">output (<span id="log-count">0</span> lines)</h5>
-                </div>
                 <div class="card-body">
-                    <ul id="log-list" onwheel="stopAutoScroll()" onclick="stopAutoScroll()" class="list-group text-left"
-                        style="height: 600px;overflow-y: scroll;font-size: 14px;font-family: monospace;">
+                    <div class="row" style="padding-bottom: 10px;">
+                        <div class="col-md-2">
+                            (<span id="log-count">0</span> lines)
+                        </div>
+                        <div class="col-md-2">
+                            <input onkeyup="onFilterChanged(this.value)" autocomplete="off" type="text"
+                                   id="filter-query"
+                                   placeholder="search in logs"
+                                   class="form-control">
+                            <div id="filter-dropdown-menu" style="display: none;">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label for="ip-filter-list">filter by client</label>
+                                        <ul class="list-group" id="ip-filter-list"
+                                            style="height: 250px;overflow: auto;">
 
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="keyword-filter-list">filter by keywords</label>
+                                        <ul class="list-group" id="keyword-filter-list"
+                                            style="height: 250px;overflow: auto;">
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                    </ul>
-                    <div class="row mt-4">
-                        <div class="col-3">
+                        <div class="col-md-2">
                             <div class="form-check form-switch">
                                 <label class="form-check-label" for="auto-scroll-check">
                                     <input onchange="onAutoScrollCheckChange(this)" class="form-check-input"
@@ -145,28 +139,33 @@
                                     auto scroll</label>
                             </div>
                         </div>
-                        <div class="col-3" id="button-select-files" style="display: none">
-                            <button onclick="selectFilesAgain()"
-                                    class="btn btn-block btn-primary">select files again
+                        <div class="col-md-2">
+                            <button id="button-clear-logs " onclick="clearLogs()"
+                                    class="btn btn-block btn-primary btn-sm">clear logs
                             </button>
+                        </div>
 
-                        </div>
-                        <div class="col-3" id="button-stop-tail">
-                            <button onclick="stopTail()"
-                                    class="btn btn-block btn-primary">stop tail
-                            </button>
-                        </div>
-                        <div class="col-3">
-                            <button id="button-clear-logs" onclick="clearLogs()"
-                                    class="btn btn-block btn-primary">clear logs
-                            </button>
-                        </div>
-                        <div class="col-3">
+                        <div class="col-md-2">
                             <button id="button-download-logs" onclick="downloadLogs()"
-                                    class="btn btn-block btn-primary">download output
+                                    class="btn btn-block btn-sm btn-primary">download output
+                            </button>
+                        </div>
+                        <div class="col-md-2" id="button-select-files" style="display: none">
+                            <button onclick="selectFilesAgain()"
+                                    class="btn btn-sm btn-block btn-primary">select files
+                            </button>
+                        </div>
+                        <div class="col-md-1" id="button-stop-tail">
+                            <button onclick="stopTail()"
+                                    class="btn btn-sm btn-block btn-primary">stop tail
                             </button>
                         </div>
                     </div>
+                    <ul id="log-list" onwheel="stopAutoScroll()" onclick="stopAutoScroll()"
+                        class="list-group text-left">
+
+
+                    </ul>
 
 
                 </div>
@@ -174,9 +173,15 @@
 
         </div>
 
+        <div class="col-md-12">
+
+            <a target="_blank" class="text-muted btn"
+               href="https://github.com/bydllhcbn/tailer"><small>github</small></a>
+        </div>
     </div>
 
 </div>
+
 
 <div class="modal fade" id="serverAddModal" tabindex="-1" aria-labelledby="serverAddModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -249,7 +254,9 @@
 </div>
 <script src="/js/bootstrap.min.js"></script>
 <script src="/templates.js"></script>
-<script src="/script.js"></script>
+<script src="/main.js"></script>
+<script src="/filter.js"></script>
+<script src="/functions.js"></script>
 
 </body>
 </html>

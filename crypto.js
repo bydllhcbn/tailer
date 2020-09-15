@@ -1,9 +1,10 @@
 const crypto = require('crypto');
 const algorithm = 'aes-256-cbc';
-const key = crypto.randomBytes(32);
-const iv = crypto.randomBytes(16);
+const key = '987y24t2783ft576t3hy456535664346';
+const iv = '987y24t2783ft576';
 
 exports.encrypt = function (text) {
+    return text;
     let cipher = crypto.createCipheriv(algorithm, Buffer.from(key), iv);
     let encrypted = cipher.update(text);
     encrypted = Buffer.concat([encrypted, cipher.final()]);
@@ -11,6 +12,7 @@ exports.encrypt = function (text) {
 }
 
 exports.decrypt = function (text) {
+    return text;
     let iv = Buffer.from(text.iv, 'hex');
     let encryptedText = Buffer.from(text.encryptedData, 'hex');
     let decipher = crypto.createDecipheriv(algorithm, Buffer.from(key), iv);

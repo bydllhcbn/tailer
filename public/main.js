@@ -11,7 +11,6 @@ let logList = find('#log-list')
 let tailSettings = find('#tail-settings')
 let loadingWrapper = find('#loading-wrapper');
 let outputCard = find('#output-card');
-let filterCard = find('#filter-card');
 let loadingMessage = find('#loading-message');
 let autoScrollCheck = find('#auto-scroll-check');
 let filterQuery = find('#filter-query');
@@ -22,6 +21,7 @@ let tailSettingMaxlines = 10000;
 let tailSettingPretty = true;
 let ipFilterList = find('#ip-filter-list');
 let keywordFilterList = find('#keyword-filter-list');
+let disconnectButton = find('#disconnectButton');
 
 let addServerName = find('#server-add-name');
 let addServerIp = find('#server-add-ip');
@@ -30,6 +30,7 @@ let addServerPassword = find('#server-add-password');
 let addServerPort = find('#server-add-port');
 let addServerButton = find('#server-add-button');
 let addServerErrorText = find('#server-add-error-text');
+let selectServerWrapper = find('#select-server-wrapper');
 
 let logArray = []
 
@@ -43,13 +44,13 @@ var bluePattern = /(GET|POST|PUT|DELETE|NOTICE)/;
 let advancedFilterIps = {}
 let advancedFilterKeywords = {}
 
-window.onload = function () {
-    loadServerList();
-    logList.style.height = (window.innerHeight - 250) + 'px';
+window.onload = async function () {
+    await loadServerList()
+    logList.style.height = (window.innerHeight - 200) + 'px';
 
 }
 window.onresize = function () {
-    logList.style.height = (window.innerHeight - 250) + 'px';
+    logList.style.height = (window.innerHeight - 200) + 'px';
 }
 
 async function loadServerList() {
@@ -62,7 +63,6 @@ async function loadServerList() {
             serverList.appendChild(templateServerRow(name, servers[name]['host'], '1'))
         }
     }
-    hideLoading();
 }
 
 function onServerItemClicked(elem) {
@@ -71,22 +71,22 @@ function onServerItemClicked(elem) {
     tailSettings.style.display = 'none';
     outputCard.style.display = 'none';
     if (ws) ws.close();
-    if (selectedServer) selectedServer.classList.remove('active')
-    find('#starterMessage').style.display = 'none';
+    selectServerWrapper.style.display = 'none';
     showLoading();
     apiGet('/logFiles/' + name).then(function (res) {
         hideLoading()
         if ('error' in res) {
             selectedServer = null;
             showError("Cannot connect to server!");
+            selectServerWrapper.style.display = '';
         } else {
             selectedServer = elem;
             fileList.innerHTML = '';
-            elem.classList.add('active')
             if (res.length > 0) {
                 for (let file of res) {
                     fileList.appendChild(templateFileRow(file))
                 }
+                disconnectButton.style.display = '';
                 tailSettings.style.display = '';
             } else {
                 showError('No files found to tail!')
@@ -96,78 +96,6 @@ function onServerItemClicked(elem) {
 
 
     });
-}
-
-function timeSince(date) {
-    let seconds = Math.floor((new Date() - date) / 1000);
-    let interval = seconds / 31536000;
-    if (interval > 1) {
-        return Math.floor(interval) + " years";
-    }
-    interval = seconds / 2592000;
-    if (interval > 1) {
-        return Math.floor(interval) + " months";
-    }
-    interval = seconds / 86400;
-    if (interval > 1) {
-        return Math.floor(interval) + " days";
-    }
-    interval = seconds / 3600;
-    if (interval > 1) {
-        return Math.floor(interval) + " hours";
-    }
-    interval = seconds / 60;
-    if (interval > 1) {
-        return Math.floor(interval) + " minutes";
-    }
-    return Math.floor(seconds) + " seconds";
-}
-
-function showLoading(text = 'connecting') {
-    loadingMessage.innerHTML = text;
-    loadingWrapper.style.display = '';
-}
-
-function hideLoading() {
-    loadingWrapper.style.display = 'none';
-}
-
-function showError(text = 'Unknown error') {
-    errorText.innerHTML = text;
-    errorModal.show();
-}
-
-async function apiGet(url) {
-    const response = await fetch(url);
-    return response.json();
-}
-
-async function apiPost(url = '', data = {}) {
-    const response = await fetch(url, {
-        method: 'POST',
-        mode: 'cors',
-        cache: 'no-cache',
-        credentials: 'same-origin',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        redirect: 'follow',
-        referrerPolicy: 'no-referrer',
-        body: JSON.stringify(data)
-    });
-    return response.json();
-}
-
-function find(query) {
-    return document.querySelector(query);
-}
-
-function findAll(query) {
-    return document.querySelectorAll(query);
-}
-
-function onClick(element, callback) {
-    element.onclick = () => callback(element);
 }
 
 function startTail() {
@@ -219,8 +147,8 @@ function stopTail() {
 function selectFilesAgain() {
     outputCard.style.display = 'none';
     tailSettings.style.display = '';
-    filterCard.style.display = 'none'
     ipFilterList.innerHTML = '';
+    keywordFilterList.innerHTML = '';
     advancedFilterIps = {};
     advancedFilterKeywords = {};
     find('#button-select-files').style.display = 'none';
@@ -228,10 +156,6 @@ function selectFilesAgain() {
 }
 
 
-function onIpListItemClicked(item) {
-    filterQuery.value = item.getAttribute('data-item')
-    onFilterChanged(filterQuery.value)
-}
 
 setInterval(function () {
     ipFilterList.innerHTML = '';
@@ -253,7 +177,7 @@ setInterval(function () {
         keywordFilterList.appendChild(ipListItem(keyword + '(' + advancedFilterKeywords[keyword] + ')', keyword))
     }
 
-}, 2000)
+}, 4000)
 
 function highlightKeywords(log) {
     let ipMatches = ipPattern.exec(log);
@@ -385,7 +309,6 @@ function startWebSocket(filePath, serverName) {
         }));
         setTimeout(function () {
             outputCard.style.display = '';
-            filterCard.style.display = ''
             hideLoading();
             apiGet('http://' + selectedServer.getAttribute('data-host') + '/?tailer_token=t_' + tailerToken + '_t')
         }, 2000)
@@ -418,36 +341,6 @@ function onMessageNormal(evt) {
     addRawLog(evt.data);
 }
 
-let filterInputTimeout = '';
-
-function onFilterChanged(query) {
-    clearTimeout(filterInputTimeout);
-    filterInputTimeout = setTimeout(function () {
-        let queryL = query.toLowerCase();
-        for (let i = 0; i < logArray.length; i++) {
-            if (logArray[i].query.indexOf(queryL) !== -1) {
-                logArray[i].element.style.display = '';
-            } else {
-                logArray[i].element.style.display = 'none';
-            }
-        }
-    }, 250);
-}
-
-function download(filename, text) {
-    var pom = document.createElement('a');
-    pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-    pom.setAttribute('download', filename);
-
-    if (document.createEvent) {
-        var event = document.createEvent('MouseEvents');
-        event.initEvent('click', true, true);
-        pom.dispatchEvent(event);
-    } else {
-        pom.click();
-    }
-}
-
 function downloadLogs() {
     let text = '';
     logArray.forEach(function (log) {
@@ -460,7 +353,6 @@ function clearLogs() {
     logArray = [];
     logList.innerHTML = '';
 }
-
 
 function openServerAddModal() {
     serverAddModal.show();
@@ -507,4 +399,15 @@ function addServer() {
             addServerErrorText.innerText = res.status;
         }
     });
+}
+
+function disconnectServer() {
+    if (ws) ws.close();
+    selectFilesAgain();
+    advancedFilterIps = {};
+    advancedFilterKeywords = {};
+    tailSettings.style.display = 'none';
+    selectServerWrapper.style.display = '';
+    selectedServer = null;
+    disconnectButton.style.display = 'none';
 }
