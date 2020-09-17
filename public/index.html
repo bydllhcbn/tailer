@@ -17,14 +17,14 @@
 
     <div class="container">
         <a class="navbar-brand" href="#">tailer</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText"
-                aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarText">
+
+        <div class=" navbar-collapse">
             <div class="navbar-nav mr-auto mb-2 mb-lg-0">
 
             </div>
+            <button id="getServerLoadButton" style="display: none" class="btn btn-outline-success mr-1"
+                    onclick="getServerLoad()">loading server info...
+            </button>
             <button id="disconnectButton" style="display: none" class="btn btn-outline-danger"
                     onclick="disconnectServer()">disconnect
             </button>
@@ -100,12 +100,13 @@
                 </div>
             </div>
 
-            <div id="output-card" style="display: none" class="card mb-4 shadow-sm">
-                <div class="card-body">
-                    <div class="row" style="padding-bottom: 10px;">
-                        <div class="col-md-2">
-                            (<span id="log-count">0</span> lines)
-                        </div>
+            <div id="output-card" style="display: none" class=" mb-1 shadow-sm ">
+                <div class="pr-1 pl-1 pb-2">
+
+                    <ul id="log-list" onwheel="stopAutoScroll()" onclick="stopAutoScroll()"
+                        class="list-group text-left">
+                    </ul>
+                    <div class="row" style="padding-top: 10px;">
                         <div class="col-md-2">
                             <input onkeyup="onFilterChanged(this.value)" autocomplete="off" type="text"
                                    id="filter-query"
@@ -129,7 +130,9 @@
                                 </div>
                             </div>
                         </div>
-
+                        <div class="col-md-2">
+                            <span id="log-count">0</span> lines
+                        </div>
                         <div class="col-md-2">
                             <div class="form-check form-switch">
                                 <label class="form-check-label" for="auto-scroll-check">
@@ -155,18 +158,12 @@
                                     class="btn btn-sm btn-block btn-primary">select files
                             </button>
                         </div>
-                        <div class="col-md-1" id="button-stop-tail">
+                        <div class="col-md-2" id="button-stop-tail">
                             <button onclick="stopTail()"
                                     class="btn btn-sm btn-block btn-primary">stop tail
                             </button>
                         </div>
                     </div>
-                    <ul id="log-list" onwheel="stopAutoScroll()" onclick="stopAutoScroll()"
-                        class="list-group text-left">
-
-
-                    </ul>
-
 
                 </div>
             </div>
@@ -174,8 +171,7 @@
         </div>
 
         <div class="col-md-12">
-
-            <a target="_blank" class="text-muted btn"
+            <a target="_blank" class="text-muted btn p-0"
                href="https://github.com/bydllhcbn/tailer"><small>github</small></a>
         </div>
     </div>
@@ -254,9 +250,10 @@
 </div>
 <script src="/js/bootstrap.min.js"></script>
 <script src="/templates.js"></script>
+<script src="/functions.js"></script>
+
 <script src="/main.js"></script>
 <script src="/filter.js"></script>
-<script src="/functions.js"></script>
 
 </body>
 </html>

@@ -1,8 +1,9 @@
 let express = require('express');
 let router = express.Router();
-let SSH = require('simple-ssh');
+let simpleSSH = require('simple-ssh');
+let ssh = require('../ssh');
 const JSONdb = require('simple-json-db');
-const {encrypt,decrypt} = require("../crypto");
+const {encrypt, decrypt} = require("../crypto");
 
 
 router.get('/', function (req, res, next) {
@@ -25,65 +26,38 @@ router.get('/server/:name', function (req, res, next) {
 
 })
 router.get('/logFiles/:name', function (req, res, next) {
-    const db = new JSONdb('db.json');
-    let servers = db.get('servers');
-    if (typeof servers === 'undefined') {
+    ssh.run(req.params.name, 'ls -phlt -d --full-time /var/log/{*,.*} /var/log/httpd/{*,.*}').then(result => {
+        let files = [];
+        result.split('\n').forEach(item => {
+            let itemArray = item.split(/\s+/g);
+            if (itemArray.length > 6) files.push({
+                'size': itemArray[4],
+                'date': itemArray[5] + ' ' + itemArray[6] + ' ' + itemArray[7],
+                'name': itemArray[8],
+            })
+        })
+        res.send(files);
+    }).catch(error => {
+        console.log('ssh error result: ' + error.toString())
         res.send({
-            'error': 'not found'
+            'error': error
         });
-    } else {
-        if (req.params.name in servers) {
-            let server = servers[req.params.name];
-            let ssh = new SSH({
-                user: server.user,
-                host: server.host,
-                pass: decrypt(server.pass),
-                port: server.port
-            });
-            ssh.on('error', function (err) {
-                res.send({
-                    'error': 'cannot connect!'
-                });
-                ssh.end();
-            });
-
-            ssh.exec('ls -hlt --full-time /var/log/httpd', {
-                out: function (stdout) {
-                    let files = [];
-                    stdout.split('\n').forEach(item => {
-                        let itemArray = item.split(/\s+/g);
-                        if (itemArray.length > 6) files.push({
-                            'size': itemArray[4],
-                            'date': itemArray[5] + ' ' + itemArray[6] + ' ' + itemArray[7],
-                            'name': '/var/log/httpd/' + itemArray[8],
-                        })
-                    })
-                    res.send(files);
-                    ssh.end();
-                },
-                err: function (error) {
-                    res.send({
-                        'error': 'ssh error'
-                    });
-                    console.log('error: ' + error);
-                },
-                exit: function () {
-                    console.log(req.params.name + ' ssh exited!');
-                    console.log('ssh closed');
-                },
-            }).start();
-
-        } else {
-            console.log('name not found');
-            res.send({
-                'error': 'name not found'
-            });
-        }
-    }
-
+    })
 })
 
 
+router.get('/serverLoad/:name', function (req, res, next) {
+    ssh.run(req.params.name, 'w').then(result => {
+        res.send({
+            'output': result
+        });
+    }).catch(error => {
+        console.log('ssh error result: ' + error.toString())
+        res.send({
+            'error': error
+        });
+    })
+})
 router.get('/server', function (req, res, next) {
     const db = new JSONdb('db.json');
     let servers = db.get('servers');
@@ -118,7 +92,7 @@ router.post('/server', function (req, res, next) {
         res.send({'status': 'missing params'});
         return;
     }
-    let ssh = new SSH({
+    let ssh = new simpleSSH({
         user: req.body.user,
         host: req.body.host,
         pass: req.body.pass,

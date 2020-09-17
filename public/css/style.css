@@ -175,17 +175,19 @@ a.text-primary:hover, a.text-primary:focus {
     padding: 5px;
     border: 1px solid rgba(0, 0, 0, .125);
     border-top-width: 0;
+    word-break: break-word;
 }
 
 #filter-dropdown-menu {
     position: absolute;
     background: white;
-    box-shadow: 5px 5px 4px #a8a8a840;
+    box-shadow: -5px -5px 4px #a8a8a840;
     border: 1px solid #cecccc;
     margin: auto;
     width: 600px;
     height: 300px;
     padding: 8px;
+    bottom: 94px;
 }
 
 #log-list {

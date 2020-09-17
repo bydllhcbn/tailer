@@ -22,6 +22,7 @@ let tailSettingPretty = true;
 let ipFilterList = find('#ip-filter-list');
 let keywordFilterList = find('#keyword-filter-list');
 let disconnectButton = find('#disconnectButton');
+let getServerLoadButton = find('#getServerLoadButton');
 
 let addServerName = find('#server-add-name');
 let addServerIp = find('#server-add-ip');
@@ -44,13 +45,13 @@ var bluePattern = /(GET|POST|PUT|DELETE|NOTICE)/;
 let advancedFilterIps = {}
 let advancedFilterKeywords = {}
 
-window.onload = async function () {
-    await loadServerList()
-    logList.style.height = (window.innerHeight - 200) + 'px';
+window.onload = function () {
+    loadServerList();
+    logList.style.height = (window.innerHeight - 160) + 'px';
 
 }
 window.onresize = function () {
-    logList.style.height = (window.innerHeight - 200) + 'px';
+    logList.style.height = (window.innerHeight - 160) + 'px';
 }
 
 async function loadServerList() {
@@ -82,10 +83,14 @@ function onServerItemClicked(elem) {
         } else {
             selectedServer = elem;
             fileList.innerHTML = '';
+            getServerLoad();
             if (res.length > 0) {
                 for (let file of res) {
-                    fileList.appendChild(templateFileRow(file))
+                    if ('name' in file && !file.name.toString().endsWith('/')) {
+                        fileList.appendChild(templateFileRow(file))
+                    }
                 }
+                getServerLoadButton.style.display = '';
                 disconnectButton.style.display = '';
                 tailSettings.style.display = '';
             } else {
@@ -410,4 +415,22 @@ function disconnectServer() {
     selectServerWrapper.style.display = '';
     selectedServer = null;
     disconnectButton.style.display = 'none';
+    getServerLoadButton.style.display = 'none';
+}
+
+function getServerLoad() {
+    if (selectedServer === null) return;
+    let name = selectedServer.getAttribute('data-name');
+    getServerLoadButton.innerText = 'loading server info...';
+    getServerLoadButton.setAttribute('disabled', true);
+    apiGet('/serverLoad/' + name).then(function (res) {
+        if ('error' in res) {
+
+        } else {
+            let lines = res.output.split('\n');
+            console.log(lines);
+            getServerLoadButton.innerText = name + ' - ' + lines[0];
+            getServerLoadButton.removeAttribute('disabled');
+        }
+    });
 }
