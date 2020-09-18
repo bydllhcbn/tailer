@@ -61,6 +61,13 @@ wsServer.on('connection', function connection(wsClient) {
             wsClient.terminate();
             return;
         }
+        // Authenticate websocket client
+        let token = json['params']['token'];
+        if(!(token && token !=='' && db.getToken(token))){
+            wsClient.result("error", "MISSING OR WRONG AUTH TOKEN!");
+            wsClient.terminate();
+            return;
+        }
 
         if (json['action'] === 'GET_TCP_CLIENTS') {
             let clients = [];
