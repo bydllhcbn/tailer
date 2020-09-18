@@ -38,7 +38,21 @@ function showError(text = 'Unknown error') {
 }
 
 async function apiGet(url) {
-    const response = await fetch(url);
+    const response = await fetch(url, {
+        method: 'GET',
+        mode: 'cors',
+        cache: 'no-cache',
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-tailer-token': localStorage.getItem('token') || ''
+        },
+        redirect: 'follow',
+        referrerPolicy: 'no-referrer'
+    });
+    if (response.status === 401) {
+        window.location = '/login.html';
+    }
     return response.json();
 }
 
@@ -50,6 +64,7 @@ async function apiPost(url = '', data = {}) {
         credentials: 'same-origin',
         headers: {
             'Content-Type': 'application/json',
+            'x-tailer-token': localStorage.getItem('token') || ''
         },
         redirect: 'follow',
         referrerPolicy: 'no-referrer',

@@ -3,6 +3,7 @@ wsClients = {};
 const WebSocket = require('ws');
 const wsServer = new WebSocket.Server({port: 8282});
 const JSONdb = require('simple-json-db');
+const db = require('./db')
 let SSH = require('simple-ssh');
 const {encrypt,decrypt} = require("./crypto");
 

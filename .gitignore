@@ -5,3 +5,4 @@
 *.ipr
 *.iws
 .idea/
+/db_auth.json

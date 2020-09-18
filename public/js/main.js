@@ -22,6 +22,7 @@ let tailSettingPretty = true;
 let ipFilterList = find('#ip-filter-list');
 let keywordFilterList = find('#keyword-filter-list');
 let disconnectButton = find('#disconnectButton');
+let logoutButton = find('#logoutButton');
 let getServerLoadButton = find('#getServerLoadButton');
 
 let addServerName = find('#server-add-name');
@@ -66,6 +67,13 @@ async function loadServerList() {
     }
 }
 
+function logout() {
+    apiGet('/logout').then(function (res) {
+        localStorage.removeItem('token');
+        window.location = '/login.html';
+    })
+}
+
 function onServerItemClicked(elem) {
     if (elem === selectedServer) return;
     let name = elem.getAttribute('data-name');
@@ -92,6 +100,7 @@ function onServerItemClicked(elem) {
                 }
                 getServerLoadButton.style.display = '';
                 disconnectButton.style.display = '';
+                logoutButton.style.display = 'none';
                 tailSettings.style.display = '';
             } else {
                 showError('No files found to tail!')
@@ -309,6 +318,7 @@ function startWebSocket(filePath, serverName) {
                 filePath: filePath,
                 serverName: serverName,
                 number: tailSettingNumber.value,
+                token: localStorage.getItem('token')||'',
                 follow: tailSettingFollow.checked
             }
         }));
@@ -415,6 +425,7 @@ function disconnectServer() {
     selectServerWrapper.style.display = '';
     selectedServer = null;
     disconnectButton.style.display = 'none';
+    logoutButton.style.display = '';
     getServerLoadButton.style.display = 'none';
 }
 

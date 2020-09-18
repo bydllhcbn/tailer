@@ -4,12 +4,12 @@ let simpleSSH = require('simple-ssh');
 let ssh = require('../ssh');
 const JSONdb = require('simple-json-db');
 const {encrypt, decrypt} = require("../crypto");
+let db = require('../db')
 
-
-router.get('/', function (req, res, next) {
-    res.render('index', {title: 'Express'});
-});
-
+router.get('/logout', function (req, res, next) {
+   db.deleteToken(req.headers['x-tailer-token'])
+    res.send('{}');
+})
 
 router.get('/server/:name', function (req, res, next) {
     const db = new JSONdb('db.json');
