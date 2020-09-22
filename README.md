@@ -7,6 +7,3 @@ Web UI for watching apache logs using ssh connection tunnel and tail
 2. cd tailer
 3. npm install
 4. npm start
-
-
-![tailer-screenshot](screenshot-1.jpg)
