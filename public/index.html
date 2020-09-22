@@ -96,8 +96,14 @@
                         </div>
 
                     </div>
+
+
                     <h5 id="active-items">select files</h5>
-                    <div class="list-group form-check form-switch" id="file-list" style="max-height: 500px;overflow: auto;">
+                    <div class="list-group form-check form-switch" id="file-list">
+                        <ul class="nav nav-pills mb-1" id="tablist" role="tablist">
+                        </ul>
+                        <div class="tab-content" style="max-height: 500px;overflow: auto;" id="tabContentList">
+                        </div>
                     </div>
                     <button onclick="startTail()" class="btn btn-block btn-primary mt-4">start tail</button>
                 </div>
@@ -110,11 +116,15 @@
                         class="list-group text-left">
                     </ul>
                     <div class="row" style="padding-top: 10px;">
-                        <div class="col-md-2">
-                            <input onkeyup="onFilterChanged(this.value)" autocomplete="off" type="text"
-                                   id="filter-query"
-                                   placeholder="search in logs"
-                                   class="form-control">
+                        <div class="col-md-3">
+
+                            <div class="input-group mb-3">
+                                <input  onkeyup="onFilterChanged(this.value)" autocomplete="off" type="text"
+                                   id="filter-query" type="text" class="form-control" placeholder="search in logs">
+                                <button class="btn btn-outline-secondary" type="button" onclick="toggleFilterDropdown()" id="button-toggle">filters</button>
+                                <button class="btn btn-outline-danger" type="button" onclick="clearFilterQueryInput()" id="button-clear-filter">clear</button>
+                            </div>
+
                             <div id="filter-dropdown-menu" style="display: none;">
                                 <div class="row">
                                     <div class="col-md-6">
@@ -133,7 +143,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-1">
                             <span id="log-count">0</span> lines
                         </div>
                         <div class="col-md-2">

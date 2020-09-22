@@ -212,11 +212,24 @@ a.text-primary:hover, a.text-primary:focus {
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  background: #343a40;
-  border-radius: 2px;
+    background: #343a40;
+    border-radius: 2px;
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-  background: #292d32;
+    background: #292d32;
+}
+
+.nav-link {
+    color: #343a40;
+}
+
+.nav-link:hover {
+    color: #1d2023;
+}
+
+.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+    color: #fff;
+    background-color: #343a40;
 }

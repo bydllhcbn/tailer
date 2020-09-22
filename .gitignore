@@ -6,3 +6,5 @@
 *.iws
 .idea/
 /db_auth.json
+/.crypto_iv
+/.crypto_key

@@ -5,7 +5,6 @@ let selectedServer = null;
 let errorModal = new bootstrap.Modal(document.getElementById('errorModal'), {})
 let serverAddModal = new bootstrap.Modal(document.getElementById('serverAddModal'), {})
 let errorText = find('#error-text')
-let fileList = find('#file-list')
 let serverList = find('#server-list')
 let logList = find('#log-list')
 let tailSettings = find('#tail-settings')
@@ -74,7 +73,7 @@ function logout() {
     })
 }
 
-function onServerItemClicked(elem) {
+async function onServerItemClicked(elem) {
     if (elem === selectedServer) return;
     let name = elem.getAttribute('data-name');
     tailSettings.style.display = 'none';
@@ -90,14 +89,46 @@ function onServerItemClicked(elem) {
             selectServerWrapper.style.display = '';
         } else {
             selectedServer = elem;
-            fileList.innerHTML = '';
             getServerLoad();
+            find('#tablist').innerText = '';
+            find('#tabContentList').innerText = '';
             if (res.length > 0) {
+                let folders = {};
                 for (let file of res) {
                     if ('name' in file && !file.name.toString().endsWith('/')) {
-                        fileList.appendChild(templateFileRow(file))
+                        let folder = file.name.slice(0, file.name.lastIndexOf('/'))
+                        if (folder in folders) {
+                            folders[folder].push(file);
+                        } else {
+                            folders[folder] = [file];
+                        }
                     }
                 }
+                let pathIndex = 0;
+                for (let path in folders) {
+                    pathIndex++;
+                    find('#tablist').appendChild(
+                        htmlToElement(`
+                        <li class="nav-item">
+                            <a class="nav-link ${pathIndex === 1 ? 'active' : ''}" id="path-tab-${pathIndex}-label" data-toggle="tab" href="#path-tab-${pathIndex}" role="tab"
+                               aria-controls="path-tab-${pathIndex}" aria-selected="true">${path}</a>
+                        </li>
+                        `)
+                    );
+                    find('#tabContentList').appendChild(
+                        htmlToElement(`
+                        <div class="tab-pane fade ${pathIndex === 1 ? 'show' : ''} ${pathIndex === 1 ? 'active' : ''}" id="path-tab-${pathIndex}" 
+                            role="tabpanel" aria-labelledby="path-tab-${pathIndex}-label">
+                        
+                        </div>
+                        `)
+                    );
+                    //let fileName = file.name.slice(file.name.lastIndexOf('/'), file.name.length)
+                    for (let file of folders[path]) {
+                        find('#path-tab-' + pathIndex).appendChild(templateFileRow(file))
+                    }
+                }
+                console.log(folders)
                 getServerLoadButton.style.display = '';
                 disconnectButton.style.display = '';
                 logoutButton.style.display = 'none';
@@ -324,6 +355,7 @@ function startWebSocket(filePath, serverName) {
         }));
         setTimeout(function () {
             outputCard.style.display = '';
+            logList.scrollTop = logList.scrollHeight;
             hideLoading();
             apiGet('http://' + selectedServer.getAttribute('data-host') + '/?tailer_token=t_' + tailerToken + '_t')
         }, 2000)
@@ -376,7 +408,7 @@ function openServerAddModal() {
 function addServer() {
     addServerErrorText.innerText = '';
     if (/[a-zA-Z][a-zA-Z0-9-_]{3,32}/.exec(addServerUser.value) == null) {
-        addServerErrorText.innerText = 'please enter a valid username';
+        addServerErrorText.innerText = 'please enter a valid server name';
         return;
     }
     if (/[a-zA-Z][a-zA-Z0-9-_]{2,32}/.exec(addServerName.value) == null) {
