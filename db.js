@@ -86,3 +86,57 @@ exports.deleteToken = (token) => {
 
     return true;
 };
+
+
+exports.addPath = (server, path) => {
+    const db = new JSONdb('db.json');
+
+    let servers = db.get('servers');
+    if (!(server in servers)) {
+        return false;
+    }
+    if (!('custom_paths' in servers[server])) {
+        servers[server]['custom_paths'] = [path];
+    } else {
+        if (servers[server]['custom_paths'].indexOf(path) === -1) {
+            servers[server]['custom_paths'].push(path);
+        }
+    }
+
+    db.set('servers', servers);
+    db.sync();
+};
+
+
+exports.getPaths = (server) => {
+    const db = new JSONdb('db.json');
+    let servers = db.get('servers');
+    if (!(server in servers)) {
+        return [];
+    }
+    if (!('custom_paths' in servers[server])) {
+        return [];
+    }
+    return servers[server]['custom_paths'];
+};
+
+exports.deletePath = (server, path) => {
+    const db = new JSONdb('db.json');
+    let servers = db.get('servers');
+    if (!(server in servers)) {
+        return false;
+    }
+    if (!('custom_paths' in servers[server])) {
+        return false;
+    }
+
+    let index = servers[server]['custom_paths'].indexOf(path);
+    if (index === -1) {
+        return false;
+    }
+    servers[server]['custom_paths'].splice(index, 1);
+
+    db.set('servers', servers);
+    db.sync();
+    return true;
+};

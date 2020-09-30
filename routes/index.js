@@ -1,6 +1,5 @@
 let express = require('express');
 let router = express.Router();
-let simpleSSH = require('simple-ssh');
 let ssh = require('../ssh');
 const JSONdb = require('simple-json-db');
 const {encrypt, decrypt} = require("../crypto");
@@ -26,7 +25,13 @@ router.get('/server/:name', function (req, res, next) {
 
 })
 router.get('/logFiles/:name', function (req, res, next) {
-    ssh.run(req.params.name, 'ls -phlt -d --full-time /var/log/{*,.*} /var/log/httpd/{*,.*}').then(result => {
+    let command = 'ls -phlt -d --full-time /var/log/{*,.*} /var/log/httpd/{*,.*}';
+
+    let customPaths = db.getPaths(req.params.name)
+    for (let path of customPaths) {
+        command = command + ' ' + path;
+    }
+    ssh.runOnce(req.params.name, command).then(result => {
         let files = [];
         result.split('\n').forEach(item => {
             let itemArray = item.split(/\s+/g);
@@ -47,7 +52,7 @@ router.get('/logFiles/:name', function (req, res, next) {
 
 
 router.get('/serverLoad/:name', function (req, res, next) {
-    ssh.run(req.params.name, 'w').then(result => {
+    ssh.runOnce(req.params.name, 'w').then(result => {
         res.send({
             'output': result
         });
@@ -92,21 +97,7 @@ router.post('/server', function (req, res, next) {
         res.send({'status': 'missing params'});
         return;
     }
-    let ssh = new simpleSSH({
-        user: req.body.user,
-        host: req.body.host,
-        pass: req.body.pass,
-        port: req.body.port
-    });
-    ssh.on('error', function (err) {
-        res.send({
-            'status': 'cannot connect to server'
-        });
-        ssh.end();
-    });
-
-    ssh.on('ready', function (err) {
-
+    ssh.checkServer(req.body.user, req.body.host, req.body.pass, req.body.port).then(() => {
         const db = new JSONdb('db.json');
         let server = {
             name: req.body.name,
@@ -127,9 +118,51 @@ router.post('/server', function (req, res, next) {
         res.send({
             'status': 'ok'
         });
-        ssh.end();
+    }).catch(() => {
+        res.send({
+            'status': 'cannot connect to server'
+        });
     });
-    ssh.start();
+
+});
+
+
+router.post('/path', function (req, res, next) {
+
+    if (!(req.body.path && req.body.server)) {
+        res.send({'status': 'missing params'});
+        return;
+    }
+    if (/[\/][\/a-zA-Z0-9-_]{3,32}/.exec(req.body.path) == null) {
+        res.send({'status': 'please enter a valid absolute file path'});
+        return;
+    }
+
+    ssh.runOnce(req.body.server, 'file ' + req.body.path).then(function (result) {
+        if (result && result !== '') {
+            // To accept dictionary: result.toString().indexOf(': directory') !== -1
+            if (result.toString().indexOf(': ASCII text') !== -1) {
+                console.log(req.body.path + " added as custom path");
+                db.addPath(req.body.server, req.body.path);
+                res.send({
+                    'status': 'ok'
+                });
+            } else {
+                res.send({
+                    'status': 'File format error: ' + result.toString()
+                });
+            }
+        } else {
+            res.send({
+                'status': 'the path should point to a text file or a directory'
+            });
+        }
+    }).catch(function (error) {
+        console.log('ssh error result: ' + error.toString())
+        res.send({
+            'status': error
+        });
+    })
 });
 
 module.exports = router;

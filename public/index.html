@@ -94,15 +94,14 @@
                                 </label>
                             </div>
                         </div>
-
                     </div>
 
 
                     <h5 id="active-items">select files</h5>
                     <div class="list-group form-check form-switch" id="file-list">
-                        <ul class="nav nav-pills mb-1" id="tablist" role="tablist">
+                        <ul class="nav nav-pills mb-1" id="file-tab-list" role="tablist">
                         </ul>
-                        <div class="tab-content" style="max-height: 500px;overflow: auto;" id="tabContentList">
+                        <div class="tab-content" style="max-height: 500px;overflow: auto;" id="file-tab-content">
                         </div>
                     </div>
                     <button onclick="startTail()" class="btn btn-block btn-primary mt-4">start tail</button>
@@ -261,12 +260,41 @@
         </div>
     </div>
 </div>
+
+
+<div class="modal fade" id="pathAddModal" tabindex="-1" aria-labelledby="pathAddModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pathAddModalLabel">add custom path</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="path-add-name" class="form-label">custom file path <small class="text-muted">file should be in ASCII text format</small></label>
+                        <input placeholder="Ex: /var/log/custom/out.logs" autocomplete="off" type="text" class="form-control" id="path-add-name" >
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <b style="color: darkred" id="path-add-error-text"></b>
+                <button type="button" class="btn btn-primary" id="path-add-button" onclick="addPath()">add</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="/js/bootstrap.min.js"></script>
 <script src="/js/templates.js"></script>
 <script src="/js/functions.js"></script>
 
 <script src="/js/main.js"></script>
 <script src="/js/filter.js"></script>
+<script src="/js/customPath.js"></script>
 
 </body>
 </html>

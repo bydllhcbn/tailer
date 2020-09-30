@@ -73,8 +73,8 @@ async function apiPost(url = '', data = {}) {
     return response.json();
 }
 
-function find(query) {
-    return document.querySelector(query);
+function find(id) {
+    return document.getElementById(id);
 }
 
 function findAll(query) {

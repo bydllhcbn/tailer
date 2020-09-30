@@ -1,6 +1,6 @@
 //filterQuery.onblur = hideAutocomplete;
-var filterDropdownMenu = find('#filter-dropdown-menu');
-var buttonToggle = find('#button-toggle');
+var filterDropdownMenu = find('filter-dropdown-menu');
+var buttonToggle = find('button-toggle');
 
 
 function toggleFilterDropdown() {

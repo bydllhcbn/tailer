@@ -2,37 +2,38 @@ let ws;
 let tailerToken = Math.random().toString(36).substring(7);
 let clientIp = null;
 let selectedServer = null;
-let errorModal = new bootstrap.Modal(document.getElementById('errorModal'), {})
-let serverAddModal = new bootstrap.Modal(document.getElementById('serverAddModal'), {})
-let errorText = find('#error-text')
-let serverList = find('#server-list')
-let logList = find('#log-list')
-let tailSettings = find('#tail-settings')
-let loadingWrapper = find('#loading-wrapper');
-let outputCard = find('#output-card');
-let loadingMessage = find('#loading-message');
-let autoScrollCheck = find('#auto-scroll-check');
-let filterQuery = find('#filter-query');
-let logCountLabel = find('#log-count');
-let tailSettingNumber = find('#tail-setting-number');
-let tailSettingFollow = find('#tail-setting-follow');
+let errorModal = new bootstrap.Modal(find('errorModal'), {})
+let serverAddModal = new bootstrap.Modal(find('serverAddModal'), {})
+let errorText = find('error-text')
+let serverList = find('server-list')
+let logList = find('log-list')
+let tailSettings = find('tail-settings')
+let loadingWrapper = find('loading-wrapper');
+let outputCard = find('output-card');
+let loadingMessage = find('loading-message');
+let autoScrollCheck = find('auto-scroll-check');
+let filterQuery = find('filter-query');
+let logCountLabel = find('log-count');
+let tailSettingNumber = find('tail-setting-number');
+let tailSettingFollow = find('tail-setting-follow');
 let tailSettingMaxlines = 10000;
 let tailSettingPretty = true;
-let ipFilterList = find('#ip-filter-list');
-let keywordFilterList = find('#keyword-filter-list');
-let disconnectButton = find('#disconnectButton');
-let logoutButton = find('#logoutButton');
-let getServerLoadButton = find('#getServerLoadButton');
+let ipFilterList = find('ip-filter-list');
+let keywordFilterList = find('keyword-filter-list');
+let disconnectButton = find('disconnectButton');
+let logoutButton = find('logoutButton');
+let getServerLoadButton = find('getServerLoadButton');
 
-let addServerName = find('#server-add-name');
-let addServerIp = find('#server-add-ip');
-let addServerUser = find('#server-add-user');
-let addServerPassword = find('#server-add-password');
-let addServerPort = find('#server-add-port');
-let addServerButton = find('#server-add-button');
-let addServerErrorText = find('#server-add-error-text');
-let selectServerWrapper = find('#select-server-wrapper');
-
+let addServerName = find('server-add-name');
+let addServerIp = find('server-add-ip');
+let addServerUser = find('server-add-user');
+let addServerPassword = find('server-add-password');
+let addServerPort = find('server-add-port');
+let addServerButton = find('server-add-button');
+let addServerErrorText = find('server-add-error-text');
+let selectServerWrapper = find('select-server-wrapper');
+let fileTabList = find('file-tab-list');
+let fileTabContent = find('file-tab-content');
 let logArray = []
 
 var accessLogPattern = /(\d*\.\d*\.\d*\.\d*)(?:[^\/]*)\[([^-]*)].*(GET|POST|PUT|DELETE) (.*)" (\d*) (\d*)(.*)/;
@@ -74,7 +75,6 @@ function logout() {
 }
 
 async function onServerItemClicked(elem) {
-    if (elem === selectedServer) return;
     let name = elem.getAttribute('data-name');
     tailSettings.style.display = 'none';
     outputCard.style.display = 'none';
@@ -90,8 +90,8 @@ async function onServerItemClicked(elem) {
         } else {
             selectedServer = elem;
             getServerLoad();
-            find('#tablist').innerText = '';
-            find('#tabContentList').innerText = '';
+            fileTabList.innerHTML = '';
+            fileTabContent.innerText = '';
             if (res.length > 0) {
                 let folders = {};
                 for (let file of res) {
@@ -107,28 +107,36 @@ async function onServerItemClicked(elem) {
                 let pathIndex = 0;
                 for (let path in folders) {
                     pathIndex++;
-                    find('#tablist').appendChild(
+                    fileTabList.appendChild(
                         htmlToElement(`
                         <li class="nav-item">
-                            <a class="nav-link ${pathIndex === 1 ? 'active' : ''}" id="path-tab-${pathIndex}-label" data-toggle="tab" href="#path-tab-${pathIndex}" role="tab"
+                            <a class="nav-link ${pathIndex === 1 ? 'active' : ''}" id="path-tab-${pathIndex}-label" 
+                            data-toggle="tab" href="#path-tab-${pathIndex}" role="tab"
                                aria-controls="path-tab-${pathIndex}" aria-selected="true">${path}</a>
                         </li>
                         `)
                     );
-                    find('#tabContentList').appendChild(
+                    fileTabContent.appendChild(
                         htmlToElement(`
                         <div class="tab-pane fade ${pathIndex === 1 ? 'show' : ''} ${pathIndex === 1 ? 'active' : ''}" id="path-tab-${pathIndex}" 
                             role="tabpanel" aria-labelledby="path-tab-${pathIndex}-label">
-                        
+                       
                         </div>
                         `)
                     );
                     //let fileName = file.name.slice(file.name.lastIndexOf('/'), file.name.length)
                     for (let file of folders[path]) {
-                        find('#path-tab-' + pathIndex).appendChild(templateFileRow(file))
+                        find('path-tab-' + pathIndex).appendChild(templateFileRow(file))
                     }
                 }
-                console.log(folders)
+
+                fileTabList.appendChild(
+                        htmlToElement(`
+                        <li class="nav-item">
+                            <a class="btn  btn-outline-primary ml-2" onclick="openAddPathModal()" href="javascript:void(0)">+ add custom file</a>
+                        </li>
+                        `)
+                    );
                 getServerLoadButton.style.display = '';
                 disconnectButton.style.display = '';
                 logoutButton.style.display = 'none';
@@ -145,8 +153,8 @@ async function onServerItemClicked(elem) {
 
 function startTail() {
     if (ws) ws.close();
-    tailSettingMaxlines = parseInt(find('#tail-setting-maxlines').value) || 1000;
-    tailSettingPretty = find('#tail-setting-pretty').checked;
+    tailSettingMaxlines = parseInt(find('tail-setting-maxlines').value) || 1000;
+    tailSettingPretty = find('tail-setting-pretty').checked;
     advancedFilterIps = {};
     autoScrollCheck.checked = true;
     let items = findAll('.file-row-input');
@@ -184,8 +192,8 @@ function onAutoScrollCheckChange(checkbox) {
 }
 
 function stopTail() {
-    find('#button-select-files').style.display = '';
-    find('#button-stop-tail').style.display = 'none';
+    find('button-select-files').style.display = '';
+    find('button-stop-tail').style.display = 'none';
     ws.close();
 }
 
@@ -196,8 +204,8 @@ function selectFilesAgain() {
     keywordFilterList.innerHTML = '';
     advancedFilterIps = {};
     advancedFilterKeywords = {};
-    find('#button-select-files').style.display = 'none';
-    find('#button-stop-tail').style.display = '';
+    find('button-select-files').style.display = 'none';
+    find('button-stop-tail').style.display = '';
 }
 
 

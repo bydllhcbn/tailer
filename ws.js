@@ -4,36 +4,28 @@ const WebSocket = require('ws');
 const wsServer = new WebSocket.Server({port: 8282});
 const JSONdb = require('simple-json-db');
 const db = require('./db')
-let SSH = require('simple-ssh');
-const {encrypt,decrypt} = require("./crypto");
+let ssh = require('./ssh');
+const {encrypt, decrypt} = require("./crypto");
 
 function startTail(client, filePath, serverName, number, follow) {
-    let server = getServer(serverName);
-    let ssh = new SSH({
-        user: server.user,
-        host: server.host,
-        pass: decrypt(server.pass),
-        port: server.port
-    });
+
+
     let numberLines = parseInt(number.toString());
     if (!numberLines || numberLines < 100) numberLines = 100;
     let followParam = '';
     if (follow) {
         followParam = '-f';
     }
-    ssh.exec('tail ' + followParam + ' --lines ' + numberLines + ' ' + filePath, {
-        out: stdout => {
-            client.send(stdout);
+    client.ssh = ssh.run(
+        serverName,
+        'tail ' + followParam + ' --lines ' + numberLines + ' ' + filePath,
+        (data) => {
+            client.send(data);
         },
-        err: function (error) {
-            client.send(error.toString());
-        },
-        exit: function () {
-            //client.send('finished');
+        () => {
             client.close();
-        },
-    }).start();
-    client.ssh = ssh;
+        }
+    )
 }
 
 
