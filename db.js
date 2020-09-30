@@ -140,3 +140,17 @@ exports.deletePath = (server, path) => {
     db.sync();
     return true;
 };
+
+function getServer(serverName) {
+    const db = new JSONdb('db.json');
+    let servers = db.get('servers');
+    if (typeof servers === 'undefined') {
+        return false;
+    } else {
+        if (serverName in servers) {
+            return servers[serverName];
+        } else {
+            return false;
+        }
+    }
+}

@@ -116,3 +116,27 @@ exports.run = function (serverName, command, onData, onExit) {
 
     return ssh;
 }
+
+
+exports.shell = function (serverName, onReady) {
+    let ssh = new SSHClient();
+    let servers = db.get('servers');
+    if (typeof servers === 'undefined') {
+        onExit('Cannot find server');
+    } else {
+        if (serverName in servers) {
+            let server = servers[serverName];
+            ssh.on('ready', function () {
+                onReady(ssh);
+            }).connect({
+                host: server.host,
+                username: server.user,
+                password: decrypt(server.pass),
+                port: server.port
+            });
+        } else {
+            onExit('Cannot find server');
+        }
+    }
+
+}

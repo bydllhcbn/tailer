@@ -2,13 +2,10 @@ nextClientID = 0;
 wsClients = {};
 const WebSocket = require('ws');
 const wsServer = new WebSocket.Server({port: 8282});
-const JSONdb = require('simple-json-db');
 const db = require('./db')
 let ssh = require('./ssh');
-const {encrypt, decrypt} = require("./crypto");
 
 function startTail(client, filePath, serverName, number, follow) {
-
 
     let numberLines = parseInt(number.toString());
     if (!numberLines || numberLines < 100) numberLines = 100;
@@ -26,6 +23,26 @@ function startTail(client, filePath, serverName, number, follow) {
             client.close();
         }
     )
+}
+
+function startShell(client, serverName) {
+    ssh.shell(serverName, (conn) => {
+        client.send('\r\nConnected.\r\n');
+        conn.shell(function (err, stream) {
+            if (err)
+                return client.send('\r\n*** SSH SHELL ERROR: ' + err.message + ' ***\r\n');
+
+            client.on('message', function (data) {
+                stream.write(data);
+            });
+
+            stream.on('data', function (d) {
+                client.send(d.toString('binary'));
+            }).on('close', function () {
+                conn.end();
+            });
+        });
+    })
 }
 
 
@@ -86,19 +103,6 @@ wsServer.on('connection', function connection(wsClient) {
     });
 });
 
-function getServer(serverName) {
-    const db = new JSONdb('db.json');
-    let servers = db.get('servers');
-    if (typeof servers === 'undefined') {
-        return false;
-    } else {
-        if (serverName in servers) {
-            return servers[serverName];
-        } else {
-            return false;
-        }
-    }
-}
 
 function sendAllWsClients(user, message) {
     wsServer.clients.forEach(function each(wsClient) {

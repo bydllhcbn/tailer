@@ -5,6 +5,7 @@
 *.ipr
 *.iws
 .idea/
+.idea/deployment.xml
 /db_auth.json
 /.crypto_iv
 /.crypto_key
