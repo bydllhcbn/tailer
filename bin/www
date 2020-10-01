@@ -4,7 +4,7 @@
  * Module dependencies.
  */
 const env = require('dotenv');
-env.config();
+env.config({path: __dirname + '/.env'});
 let app = require('../app');
 let ws = require('../ws.js');
 require('../crypto.js');
@@ -16,7 +16,6 @@ app.set('port', port);
 /**
  * Create HTTP server.
  */
-
 let server = http.createServer(app);
 
 /**

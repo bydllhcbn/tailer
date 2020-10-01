@@ -4,14 +4,14 @@ let key;
 let iv;
 fs = require('fs');
 
-if (fs.existsSync('../.crypto_key') && fs.existsSync('../.crypto_iv')) {
-    fs.readFile('../.crypto_key', null, function (err, data) {
+if (fs.existsSync(__dirname + '/.crypto_key') && fs.existsSync(__dirname + '/.crypto_iv')) {
+    fs.readFile(__dirname + '/.crypto_key', null, function (err, data) {
         if (err) {
             return console.log(err);
         }
         key = data;
     });
-    fs.readFile('../.crypto_iv', null, function (err, data) {
+    fs.readFile(__dirname + '/.crypto_iv', null, function (err, data) {
         if (err) {
             return console.log(err);
         }
@@ -21,10 +21,10 @@ if (fs.existsSync('../.crypto_key') && fs.existsSync('../.crypto_iv')) {
 } else {
     key = crypto.randomBytes(32);
     iv = crypto.randomBytes(16);
-    fs.writeFile('../.crypto_key', key, function (err) {
+    fs.writeFile(__dirname + '/.crypto_key', key, function (err) {
         if (err) return console.log(err);
     });
-    fs.writeFile('../.crypto_iv', iv, function (err) {
+    fs.writeFile(__dirname + '/.crypto_iv', iv, function (err) {
         if (err) return console.log(err);
     });
 }

@@ -14,13 +14,13 @@ exports.generateRandomString = (length) => {
 };
 
 exports.insert = (key, value) => {
-    const db = new JSONdb('db.json');
+    const db = new JSONdb(__dirname + '/db.json');
     db.set(key, value);
     db.sync();
 };
 
 exports.get = (key) => {
-    const db = new JSONdb('db.json');
+    const db = new JSONdb(__dirname + '/db.json');
     let item = db.get(key);
     if (typeof item === 'undefined') {
         return null;
@@ -90,7 +90,7 @@ exports.deleteToken = (token) => {
 
 
 exports.addPath = (server, path) => {
-    const db = new JSONdb('db.json');
+    const db = new JSONdb(__dirname + '/db.json');
 
     let servers = db.get('servers');
     if (!(server in servers)) {
@@ -110,7 +110,7 @@ exports.addPath = (server, path) => {
 
 
 exports.getPaths = (server) => {
-    const db = new JSONdb('db.json');
+    const db = new JSONdb(__dirname + '/db.json');
     let servers = db.get('servers');
     if (!(server in servers)) {
         return [];
@@ -122,7 +122,7 @@ exports.getPaths = (server) => {
 };
 
 exports.deletePath = (server, path) => {
-    const db = new JSONdb('db.json');
+    const db = new JSONdb(__dirname + '/db.json');
     let servers = db.get('servers');
     if (!(server in servers)) {
         return false;
@@ -143,7 +143,7 @@ exports.deletePath = (server, path) => {
 };
 
 function getServer(serverName) {
-    const db = new JSONdb('db.json');
+    const db = new JSONdb(__dirname + '/db.json');
     let servers = db.get('servers');
     if (typeof servers === 'undefined') {
         return false;
@@ -158,7 +158,7 @@ function getServer(serverName) {
 
 
 exports.deleteServer = (serverName) => {
-    const db = new JSONdb('db.json');
+    const db = new JSONdb(__dirname + '/db.json');
     let servers = db.get('servers');
     if (typeof servers === 'undefined') {
         servers = {};
@@ -171,7 +171,7 @@ exports.deleteServer = (serverName) => {
 
 
 exports.addServer = (name,user,host,pass,port) => {
-    const db = new JSONdb('db.json');
+    const db = new JSONdb(__dirname + '/db.json');
     let server = {
         name: name,
         user: user,

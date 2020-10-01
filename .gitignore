@@ -9,3 +9,8 @@
 /db_auth.json
 /.crypto_iv
 /.crypto_key
+
+/bin/db.json
+/bin/db_auth.json
+/bin/.crypto_iv
+/bin/.crypto_key
