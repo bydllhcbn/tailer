@@ -3,7 +3,8 @@
 /**
  * Module dependencies.
  */
-
+const env = require('dotenv');
+env.config();
 let app = require('../app');
 let ws = require('../ws.js');
 require('../crypto.js');

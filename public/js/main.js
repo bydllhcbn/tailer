@@ -60,7 +60,8 @@ window.onresize = function () {
 async function loadServerList() {
     serverList.innerHTML = '';
     let servers = await apiGet('/server');
-    if (servers.length === 0) {
+
+    if (Object.keys(servers).length===0) {
         serverList.innerHTML = '<p>click <b>+</b> to add a server</p>'
     } else {
         for (let name in servers) {

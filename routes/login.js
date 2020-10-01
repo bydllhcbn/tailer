@@ -3,7 +3,7 @@ let router = express.Router();
 let db = require('../db');
 
 router.post('/', function (req, res, next) {
-    if (req.body.username === 'admin' && req.body.password === 'admin') {
+    if (req.body.username === process.env.LOGIN_USER && req.body.password === process.env.LOGIN_PASSWORD) {
         let token = db.generateRandomString(64);
         db.addToken(token);
         res.send({

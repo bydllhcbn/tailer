@@ -170,7 +170,7 @@ exports.deleteServer = (serverName) => {
 };
 
 
-exports.addServer = (name,user,pass,host,port) => {
+exports.addServer = (name,user,host,pass,port) => {
     const db = new JSONdb('db.json');
     let server = {
         name: name,

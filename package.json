@@ -6,6 +6,7 @@
   },
   "dependencies": {
     "crypto": "^1.0.1",
+    "dotenv": "^8.2.0",
     "express": "~4.16.1",
     "simple-json-db": "^1.2.2",
     "ssh2": "^0.8.9",
