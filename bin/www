@@ -5,6 +5,8 @@
  */
 
 let app = require('../app');
+let ws = require('../ws.js');
+require('../crypto.js');
 let http = require('http');
 
 let port = normalizePort(process.env.PORT || '3000');
@@ -15,6 +17,14 @@ app.set('port', port);
  */
 
 let server = http.createServer(app);
+
+/**
+ * Create WebSocket server.
+ */
+
+const WebSocket = require('ws');
+const wsServer = new WebSocket.Server({server});
+ws.connect(wsServer);
 
 /**
  * Listen on provided port, on all network interfaces.

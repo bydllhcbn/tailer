@@ -1,7 +1,6 @@
 let express = require('express');
 let path = require('path');
-require('./ws.js');
-require('./crypto.js');
+
 
 let indexRouter = require('./routes/index');
 let loginRouter = require('./routes/login');
