@@ -1,5 +1,5 @@
-let inputUser = find('#inputUser');
-let inputPassword = find('#inputPassword');
+let inputUser = find('inputUser');
+let inputPassword = find('inputPassword');
 
 async function login()  {
     const response = await fetch('/login', {

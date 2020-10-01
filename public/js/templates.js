@@ -13,9 +13,9 @@ let templateServerRow = (name, host, status) => htmlToElement(`
              <h6>${name} - ${host}</h6>
 </div><div class="col-md-6">
               <div class=" btn-group">
-       <button class="btn btn-sm btn-outline-danger">Remove</button>
-       <button class="btn btn-sm btn-outline-primary">Edit</button>
-       <button class="btn btn-sm btn-outline-success"  data-name="${name}" data-host="${host}"  onclick="onServerItemClicked(this)">Connect</button>
+       <button class="btn btn-sm btn-outline-danger"  data-name="${name}" data-host="${host}"  onclick="openDeleteServerModal('${name}')">remove</button>
+       <button class="btn btn-sm btn-outline-primary" data-name="${name}" data-host="${host}"  onclick="openSSHTerminal('${name}')">ssh client</button>
+       <button class="btn btn-sm btn-outline-success" data-name="${name}" data-host="${host}"  onclick="onServerItemClicked(this)">tail logs</button>
 </div>
 </div>
 </div>

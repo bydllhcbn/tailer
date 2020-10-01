@@ -1,7 +1,6 @@
 
-const JSONdb = require('simple-json-db');
 let SSHClient = require('ssh2').Client;
-const {encrypt, decrypt} = require("./crypto");
+const {decrypt} = require("./crypto");
 let db = require('./db');
 
 /**
@@ -122,7 +121,7 @@ exports.shell = function (serverName, onReady) {
     let ssh = new SSHClient();
     let servers = db.get('servers');
     if (typeof servers === 'undefined') {
-        onExit('Cannot find server');
+        onReady(null);
     } else {
         if (serverName in servers) {
             let server = servers[serverName];
@@ -135,7 +134,7 @@ exports.shell = function (serverName, onReady) {
                 port: server.port
             });
         } else {
-            onExit('Cannot find server');
+            onReady(null);
         }
     }
 

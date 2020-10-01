@@ -4,6 +4,7 @@ let clientIp = null;
 let selectedServer = null;
 let errorModal = new bootstrap.Modal(find('errorModal'), {})
 let serverAddModal = new bootstrap.Modal(find('serverAddModal'), {})
+let serverDeleteModal = new bootstrap.Modal(find('serverDeleteModal'), {})
 let errorText = find('error-text')
 let serverList = find('server-list')
 let logList = find('log-list')
@@ -21,6 +22,7 @@ let tailSettingPretty = true;
 let ipFilterList = find('ip-filter-list');
 let keywordFilterList = find('keyword-filter-list');
 let disconnectButton = find('disconnectButton');
+let startSshClientButton = find('startSshClientButton');
 let logoutButton = find('logoutButton');
 let getServerLoadButton = find('getServerLoadButton');
 
@@ -139,6 +141,7 @@ async function onServerItemClicked(elem) {
                     );
                 getServerLoadButton.style.display = '';
                 disconnectButton.style.display = '';
+                startSshClientButton.style.display = '';
                 logoutButton.style.display = 'none';
                 tailSettings.style.display = '';
             } else {
@@ -465,6 +468,7 @@ function disconnectServer() {
     selectServerWrapper.style.display = '';
     selectedServer = null;
     disconnectButton.style.display = 'none';
+    startSshClientButton.style.display = 'none';
     logoutButton.style.display = '';
     getServerLoadButton.style.display = 'none';
 }
@@ -484,4 +488,35 @@ function getServerLoad() {
             getServerLoadButton.removeAttribute('disabled');
         }
     });
+}
+
+function openSSHTerminal(serverName=false) {
+    if(!serverName){
+        serverName = selectedServer.getAttribute('data-name');
+    }
+    let newWindow = window.open('/terminal.html#' + serverName, serverName, 'directories=no,titlebar=no,toolbar=no,location=no,status=no,height=600,width=800');
+    if (window.focus) {
+        newWindow.focus()
+    }
+    return false;
+}
+
+
+function openDeleteServerModal(serverName) {
+    find('delete-server-name').innerText = serverName;
+    serverDeleteModal.show();
+}
+
+function deleteServer() {
+    let button = find('server-delete-button');
+    button.setAttribute('disabled', 'true');
+    apiDelete('/server', {serverName: find('delete-server-name').innerText}).then(function () {
+        serverDeleteModal.hide();
+        button.removeAttribute('disabled');
+        loadServerList();
+    }).catch(function () {
+        serverDeleteModal.hide();
+        button.removeAttribute('disabled');
+    })
+
 }

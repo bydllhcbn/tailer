@@ -1,8 +1,6 @@
 let express = require('express');
 let router = express.Router();
 let ssh = require('../ssh');
-const JSONdb = require('simple-json-db');
-const {encrypt, decrypt} = require("../crypto");
 let db = require('../db')
 
 router.get('/logout', function (req, res, next) {
@@ -10,20 +8,6 @@ router.get('/logout', function (req, res, next) {
     res.send('{}');
 })
 
-router.get('/server/:name', function (req, res, next) {
-    const db = new JSONdb('db.json');
-    let servers = db.get('servers');
-    if (typeof servers === 'undefined') {
-        res.send([]);
-    } else {
-        if (req.params.name in servers) {
-            res.send(servers[req.params.name]);
-        } else {
-            res.send([]);
-        }
-    }
-
-})
 router.get('/logFiles/:name', function (req, res, next) {
     let command = 'ls -phlt -d --full-time /var/log/{*,.*} /var/log/httpd/{*,.*}';
 
@@ -64,7 +48,6 @@ router.get('/serverLoad/:name', function (req, res, next) {
     })
 })
 router.get('/server', function (req, res, next) {
-    const db = new JSONdb('db.json');
     let servers = db.get('servers');
     if (typeof servers === 'undefined') {
         res.send([]);
@@ -79,16 +62,9 @@ router.get('/server', function (req, res, next) {
     }
 })
 
-router.delete('/server', function (req, res, next) {
-    const db = new JSONdb('db.json');
-    let servers = db.get('servers');
-    if (typeof servers === 'undefined') {
-        servers = {};
-    }
-    delete servers[req.body.host];
-    db.set('servers', servers);
-    db.sync();
-    res.send(servers);
+router.delete('/server', function (req, res) {
+    db.deleteServer(req.body.serverName);
+    res.send({});
 })
 
 router.post('/server', function (req, res, next) {
@@ -98,26 +74,17 @@ router.post('/server', function (req, res, next) {
         return;
     }
     ssh.checkServer(req.body.user, req.body.host, req.body.pass, req.body.port).then(() => {
-        const db = new JSONdb('db.json');
-        let server = {
-            name: req.body.name,
-            user: req.body.user,
-            pass: encrypt(req.body.pass),
-            host: req.body.host,
-            port: req.body.port
-        };
-
-        let servers = db.get('servers');
-        if (typeof servers === 'undefined') {
-            servers = {};
+        let result = db.addServer(req.body.name, req.body.user, req.body.host, req.body.pass, req.body.port)
+        if (result) {
+            res.send({
+                'status': 'ok'
+            });
+        } else {
+            res.send({
+                'status': 'server name already exists'
+            });
         }
 
-        servers[req.body.name] = server;
-        db.set('servers', servers);
-        db.sync();
-        res.send({
-            'status': 'ok'
-        });
     }).catch(() => {
         res.send({
             'status': 'cannot connect to server'

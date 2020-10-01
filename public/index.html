@@ -25,6 +25,9 @@
             <button id="getServerLoadButton" style="display: none" class="btn btn-outline-success mr-1"
                     onclick="getServerLoad()">loading server info...
             </button>
+            <button id="startSshClientButton" style="display: none" class="btn btn-outline-primary mr-1"
+                    onclick="openSSHTerminal()">ssh client
+            </button>
             <button id="disconnectButton" style="display: none" class="btn btn-outline-danger"
                     onclick="disconnectServer()">disconnect
             </button>
@@ -75,7 +78,7 @@
                             <label for="tail-setting-maxlines" class="form-label">maximum number of logs to
                                 display</label>
                             <input type="number" class="form-control" id="tail-setting-maxlines"
-                                   value="5000">
+                                   value="2000">
                         </div>
                         <div class="col-md-2  p-0">
                             <div class="form-check" style="margin-top: 36px;">
@@ -261,7 +264,6 @@
     </div>
 </div>
 
-
 <div class="modal fade" id="pathAddModal" tabindex="-1" aria-labelledby="pathAddModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -287,6 +289,29 @@
         </div>
     </div>
 </div>
+
+
+
+<div class="modal fade" id="serverDeleteModal" tabindex="-1" aria-labelledby="serverDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="serverDeleteModalLabel">remove '<span id="delete-server-name"></span>'</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+               <p>Are you sure you want to remove this server?</p>
+            </div>
+            <div class="modal-footer">
+                <b style="color: darkred" id="server-update-error-text"></b>
+                <button type="button" class="btn btn-danger" id="server-delete-button" onclick="deleteServer()">remove</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <script src="/js/bootstrap.min.js"></script>
 <script src="/js/templates.js"></script>

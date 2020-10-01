@@ -96,9 +96,15 @@ function startTail(client, filePath, serverName, number, follow) {
 }
 
 function startShell(client, serverName) {
-    ssh.shell(serverName, (conn) => {
+    ssh.shell(serverName, (sshConnection) => {
+        if (!sshConnection) {
+            client.send('Cannot find server: ' + serverName + '\r\n');
+            client.close();
+            return;
+        }
+        client.ssh = sshConnection;
         client.send('\r\nConnected.\r\n');
-        conn.shell(function (err, stream) {
+        sshConnection.shell(function (err, stream) {
             if (err)
                 return client.send('\r\n*** SSH SHELL ERROR: ' + err.message + ' ***\r\n');
             client.on('message', function incoming(data) {
@@ -107,7 +113,7 @@ function startShell(client, serverName) {
             stream.on('data', function (d) {
                 client.send(d.toString('binary'));
             }).on('close', function () {
-                conn.end();
+                sshConnection.end();
                 client.close();
             });
         });

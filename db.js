@@ -1,5 +1,6 @@
 'use strict';
 const JSONdb = require('simple-json-db');
+const {encrypt} = require("./crypto");
 
 
 exports.generateRandomString = (length) => {
@@ -154,3 +155,41 @@ function getServer(serverName) {
         }
     }
 }
+
+
+exports.deleteServer = (serverName) => {
+    const db = new JSONdb('db.json');
+    let servers = db.get('servers');
+    if (typeof servers === 'undefined') {
+        servers = {};
+    }
+    delete servers[serverName];
+    db.set('servers', servers);
+    db.sync();
+    return true;
+};
+
+
+exports.addServer = (name,user,pass,host,port) => {
+    const db = new JSONdb('db.json');
+    let server = {
+        name: name,
+        user: user,
+        pass: encrypt(pass),
+        host: host,
+        port: port
+    };
+
+    let servers = db.get('servers');
+    if (typeof servers === 'undefined') {
+        servers = {};
+    }
+    if(name in servers){
+        return false;
+    }
+
+    servers[name] = server;
+    db.set('servers', servers);
+    db.sync();
+    return true;
+};

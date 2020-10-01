@@ -1,3 +1,50 @@
+window.Clipboard = (function (window, document, navigator) {
+    var textArea,
+        copy;
+
+    function isOS() {
+        return navigator.userAgent.match(/ipad|iphone/i);
+    }
+
+    function createTextArea(text) {
+        textArea = document.createElement('textArea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+    }
+
+    function selectText() {
+        var range,
+            selection;
+
+        if (isOS()) {
+            range = document.createRange();
+            range.selectNodeContents(textArea);
+            selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            textArea.setSelectionRange(0, 999999);
+        } else {
+            textArea.select();
+        }
+    }
+
+    function copyToClipboard() {
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+    }
+
+    copy = function (text) {
+        createTextArea(text);
+        selectText();
+        copyToClipboard();
+    };
+
+    return {
+        copy: copy
+    };
+})(window, document, navigator);
+
+
 function timeSince(date) {
     let seconds = Math.floor((new Date() - date) / 1000);
     let interval = seconds / 31536000;
@@ -56,7 +103,7 @@ async function apiGet(url) {
     return response.json();
 }
 
-async function apiPost(url = '', data = {}) {
+async function apiPost(url, data = {}) {
     const response = await fetch(url, {
         method: 'POST',
         mode: 'cors',
@@ -73,6 +120,22 @@ async function apiPost(url = '', data = {}) {
     return response.json();
 }
 
+async function apiDelete(url, data = {}) {
+    const response = await fetch(url, {
+        method: 'DELETE',
+        mode: 'cors',
+        cache: 'no-cache',
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-tailer-token': localStorage.getItem('token') || ''
+        },
+        redirect: 'follow',
+        referrerPolicy: 'no-referrer',
+        body: JSON.stringify(data)
+    });
+    return response.json();
+}
 function find(id) {
     return document.getElementById(id);
 }
