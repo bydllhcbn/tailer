@@ -233,20 +233,3 @@ a.text-primary:hover, a.text-primary:focus {
     color: #fff;
     background-color: #343a40;
 }
-
-#terminal-container {
-    width: 960px;
-    height: 600px;
-    margin: 0 auto;
-    padding: 2px;
-}
-
-#terminal-container .terminal {
-    background-color: #111;
-    color: #fafafa;
-    padding: 2px;
-}
-
-#terminal-container .terminal:focus .terminal-cursor {
-    background-color: #fafafa;
-}

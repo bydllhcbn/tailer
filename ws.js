@@ -15,50 +15,12 @@ exports.connect = function (_ws) {
         wsClient.on('pong', function he() {
             wsClient.isAlive = true;
         });
-
         wsClient.result = function (action, params) {
             this.send(JSON.stringify(
                 {"action": action, "params": params}
             ));
         }
-
-        wsClient.on('message', function incoming(message) {
-            let json = JSON.parse(message);
-            if (!('action' in json && 'params' in json)) {
-                wsClient.result("error", "MISSING PARAMS!");
-                wsClient.terminate();
-                return;
-            }
-            // Authenticate websocket client
-            let token = json['params']['token'];
-            if (!(token && token !== '' && db.getToken(token))) {
-                wsClient.result("error", "MISSING OR WRONG AUTH TOKEN!");
-                wsClient.terminate();
-                return;
-            }
-            if (json['action'] === 'START_TAIL') {
-                console.log('Tail started: ' + JSON.stringify(json['params']))
-                startTail(
-                    wsClient,
-                    json['params']['filePath'],
-                    json['params']['serverName'],
-                    json['params']['number'],
-                    json['params']['follow']
-                )
-            } else if (json['action'] === 'START_SHELL') {
-
-                wsClient.on('message', function incoming(data) {
-                    console.log('aaaa' + data.toString());
-                });
-                console.log('Shel started: ' + JSON.stringify(json['params']))
-                startShell(
-                    wsClient,
-                    json['params']['serverName']
-                )
-            }
-            console.log('Websocket message: %d %s', this.id, message);
-        });
-
+        wsClient.addEventListener('message', incoming)
         wsClient.on('error', function incoming(message) {
             console.log('Websocket error: %s', message);
         });
@@ -76,6 +38,40 @@ exports.connect = function (_ws) {
             wsClient.ping(wsNoop);
         });
     }, 30000);
+}
+
+function incoming(message) {
+    let json = JSON.parse(message.data);
+    if (!('action' in json && 'params' in json)) {
+        this.result("error", "MISSING PARAMS!");
+        this.terminate();
+        return;
+    }
+    // Authenticate websocket client
+    let token = json['params']['token'];
+    if (!(token && token !== '' && db.getToken(token))) {
+        this.result("error", "MISSING OR WRONG AUTH TOKEN!");
+        this.terminate();
+        return;
+    }
+    if (json['action'] === 'START_TAIL') {
+        console.log('Tail started: ' + JSON.stringify(json['params']))
+        startTail(
+            this,
+            json['params']['filePath'],
+            json['params']['serverName'],
+            json['params']['number'],
+            json['params']['follow']
+        )
+    } else if (json['action'] === 'START_SHELL') {
+        this.removeEventListener('message', incoming)
+        console.log('Shell started: ' + JSON.stringify(json['params']))
+        startShell(
+            this,
+            json['params']['serverName']
+        )
+    }
+    console.log('Websocket message: %d %s', this.id, message);
 }
 
 
@@ -105,12 +101,9 @@ function startShell(client, serverName) {
         conn.shell(function (err, stream) {
             if (err)
                 return client.send('\r\n*** SSH SHELL ERROR: ' + err.message + ' ***\r\n');
-
             client.on('message', function incoming(data) {
-                console.log('aaaa' + data.toString());
                 stream.write(data);
             });
-
             stream.on('data', function (d) {
                 client.send(d.toString('binary'));
             }).on('close', function () {
