@@ -116,7 +116,6 @@ exports.run = function (serverName, command, onData, onExit) {
     return ssh;
 }
 
-
 exports.shell = function (serverName, onReady) {
     let ssh = new SSHClient();
     let servers = db.get('servers');
@@ -127,6 +126,8 @@ exports.shell = function (serverName, onReady) {
             let server = servers[serverName];
             ssh.on('ready', function () {
                 onReady(ssh);
+            }).on('error', function () {
+                onReady(null);
             }).connect({
                 host: server.host,
                 username: server.user,
